@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 简历
+title: 关于 
 description: 黎军的个人简历
 image: assets/images/pic12.jpg
 nav-menu: true
