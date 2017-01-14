@@ -106,7 +106,10 @@ SOA中出现错误时需要补偿，因为一般不能将多个原子服务操�
 4. [REF-4] 跨服务事务： http://www.servicetechspecs.com/ws-atomictransaction
 5. [REF-5] OMG。“业务流程模型和标准 (BPMN) 2.0 版”： http://www.omg.org/spec/BPMN/2.0
 
+原文链接：[http://www.oracle.com/technetwork/cn/articles/soa/ind-soa-7-service-comp-2005463-zhs.html][4]
+
 [1]: /assets/images/biz/transaction_bound.png "服务将不得不锁定修改过的IT资源以便后续执行回滚[REF-1]"
 [2]: /assets/images/biz/transaction_boundary.png "补偿并不需要阻塞任何底层IT资源[REF-1]"
 [3]: /assets/images/biz/transaction_limit.png "事务协调器管理事务限制[REF-1]"
+[4]: http://www.oracle.com/technetwork/cn/articles/soa/ind-soa-7-service-comp-2005463-zhs.html
 

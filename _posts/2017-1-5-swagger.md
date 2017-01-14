@@ -25,17 +25,20 @@ Swagger Editor是一个开源编辑器，根据Swagger规范设计，定义和�
 
 GitHub: [https://github.com/swagger-api/swagger-editor][5]
 
-Swagger Editor可以在任何Web浏览器中工作，并且可以在本地托管或从Web访问。这里是Web官方网站访问[地址][3]，下面是本地安装的方法：
+Swagger Editor 可以在任何Web浏览器中工作，并且可以在本地托管或从Web访问。这里是Web官方网站访问[地址][3]，下面是本地安装的方法：
+
 1. 安装[NodeJS][1]，如果你本地没有安装；
 2. 安装Swagger Editor依赖, 运行`npm start`。
 
 按照这种方法安装的应用在访问的时候JS加载有点问题，当时也没有深究。如果你也碰到了相同的问题，可以按照下面的方法安装：
+
 > * npm install -g http-server
 > * wget https://github.com/swagger-api/swagger-editor/releases/download/v2.10.4/swagger-editor.zip
 > * unzip swagger-editor.zip
 > * http-server swagger-editor
 
 从Docker安装的方法:
+
 > * docker pull swaggerapi/swagger-editor
 > * docker run -p 80:8080 swaggerapi/swagger-editor
 
@@ -50,12 +53,14 @@ GitHub: [https://github.com/swagger-api/swagger-codegen][6]
 1. Java > 7或更高版本
 
 通过Homebrew安装使用：
+
 > * brew install swagger-codegen
 > * swagger-codegen help
 > * swagger-codegen config-help -l javascript
 > * swagger-codegen generate -i http://petstore.swagger.io/v2/swagger.json -l javascript
 
 使用wget命令：
+
 > * wget https://oss.sonatype.org/content/repositories/releases/io/swagger/swagger-codegen-cli/2.2.1/swagger-codegen-cli-2.2.1.jar
 > * java -jar swagger-codegen-cli-2.2.1.jar help
 > * java -jar swagger-codegen-cli-2.2.1.jar config-help -l php
@@ -71,6 +76,7 @@ GitHub: [https://github.com/swagger-api/swagger-ui][7]
 Swagger UI是从Swagger规范中定义的任何API自动生成的，并且可以在浏览器中查看。
 
 没有必要安装，构建或重新编译Swagger UI。 Swagger UI可以直接从GitHub存储库使用。 您可以使用swagger-ui代码。 请按照以下说明开始使用Swagger UI.
+
 * 前往Swagger UI工程的[Github仓库][7];
 * 克隆或下载仓库的zip文件；
 * 进入本机的Swagger UI工程目录；
