@@ -14,6 +14,26 @@ categories: other
 #### 设置Spring Boot应用
 
 ```java
+    package io.github.ljun51.demo;
+
+    import org.springframework.boot.SpringApplication;
+    import org.springframework.boot.autoconfigure.SpringBootApplication;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.RestController;
+
+    @SpringBootApplication
+    @RestController
+    public class Application {
+
+        public static void main(String[] args) {
+            SpringApplication.run(Application.class, args);
+        }
+        
+        @GetMapping("/")
+        public String hello() {
+            return "hello docker world";
+        }
+    }
 
 ```
 
@@ -80,7 +100,7 @@ categories: other
 ```shell
     $ mvn package
     $ docker rmi ljun51/docker -f
-    $ docker build --build-arg JAR_FILE=target/*.jar -t ljun51/docker -f src/main/docker/Dockerfile .
+    $ docker build --build-arg JAR_FILE=target/*.jar -t ljun51/docker:0.1 -f src/main/docker/Dockerfile .
     $ docker run -p 8080:8080 ljun51/docker
 ```
 
