@@ -1,10 +1,14 @@
----
-layout: home
-title: 主页 
-landing-title: '牛古的开发之路'
-description: ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。 
-image: null
-author: null
----
+# 牛古说--ljun51的个人开发之路
 
-Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero. Mauris aliquet magna magna sed nunc rhoncus pharetra. Pellentesque condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia pellentesque lorem ipsum dolor. Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis libero. Mauris aliquet magna magna sed nunc rhoncus amet pharetra et feugiat tempus.
+ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。 
+
+* [Docker快速入门][1] - 2019-06-13
+* Spring Boot with Docker - 2019-06-13
+* Kubernetes简易教程 - 2019-03-11
+* 大数据分析面试题 - 2018-10-12
+* 前端面试题 - 2018-10-11
+* Swagger简易教程 - 2017-01-05
+* VIM个人配置 - 2017-01-06
+* 服务补偿 - 2017-01-12
+
+[1]: http://ljun51.github.io/get-started-with-docker.html
