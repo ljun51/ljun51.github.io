@@ -11,4 +11,4 @@ ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA�
 * VIM个人配置 - 2017-01-06
 * 服务补偿 - 2017-01-12
 
-[1]: http://ljun51.github.io/get-started-with-docker.html
+[1]: http://ljun51.github.io/posts/get-started-with-docker.html
