@@ -1,13 +1,153 @@
 ---
 layout: post
-title: Docker Services
-description: 通过docker构建Spring Boot镜像
+title: Get started with Docker
+description: docker快速入门
 image: 
-categories: other
+categories: docker
 ---
-[toc]
+[TOC]
 
-### Docker Services
+# Docker快速入门
+
+通过本课程您可以知道：
+1. 安装Docker环境
+2. 构建镜像并作为容器运行
+3. 扩展应用以运行多个容器
+4. 跨集群分发应用
+5. 通过添加后端数据库来堆栈服务
+6. 部署应用到生产环境
+
+## 第1部分：Orientation
+
+### 准备Docker环境、验证Docker版本
+
+1. Docker分为社区版和企业版，我们学习Docker一般下载社区版，前往[官方网站][1]下载Docker。运行`docker --version`确定Docker是否安装正确：
+```shell
+    $ docker --version
+    Docker version 18.09.2, build 6247962
+```
+
+2. 运行`docker info`（或`docker version`）查看已安装Docker的详细信息：
+```shell
+    $ docker info
+    Containers: 38
+    Running: 14
+    Paused: 0
+    Stopped: 24
+    Images: 22
+    Server Version: 18.09.2
+    Storage Driver: overlay2
+    ...
+```
+
+### 验证Docker安装
+
+1. 通过运行简单的[hello-world][2] Docker镜像来验证Docker是否可以运行：
+```shell
+    $ docker run hello-world
+
+    Hello from Docker!
+    This message shows that your installation appears to be working correctly.
+
+    To generate this message, Docker took the following steps:
+    ...
+```
+
+2. 列出机器中已经下载的镜像：
+```shell
+    $ docker image ls
+    REPOSITORY                                      TAG                 IMAGE ID            CREATED             SIZE
+    hello-world                                     latest              fce289e99eb9        6 months ago        1.84kB
+```
+
+## 第2部分：Containers
+
+### 使用`Dockerfile`定义容器
+
+在本地机器创建一个空的目录(如`docker-practise`)，进入docker-practise目录，创建一个`Dockerfile`文件，拷贝粘贴下面的内容到这个文件，井号开头的行为注释。
+```Dockerfile
+    # Use an official Python runtime as a parent image
+    FROM python:2.7-slim
+
+    # Set the working directory to /app
+    WORKDIR /app
+
+    # Copy the current directory contents into the container at /app
+    COPY . /app
+
+    # Install any needed packages specified in requirements.txt
+    RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+    # Make port 80 available to the world outside this container
+    EXPOSE 80
+
+    # Define environment variable
+    ENV NAME World
+
+    # Run app.py when the container launches
+    CMD ["python", "app.py"]
+```
+
+### Python应用
+
+Python应用需要创建两个文件，`requirements.txt`和`app.py`，把这两个文件和`Dockerfile`放到相同的目录。
+requirements.txt
+```
+    Flask
+    Redis
+```
+
+app.py
+```python
+    from flask import Flask
+    from redis import Redis, RedisError
+    import os
+    import socket
+
+    # Connect to Redis
+    redis = Redis(host="redis", db=0, socket_connect_timeout=2, socket_timeout=2)
+
+    app = Flask(__name__)
+
+    @app.route("/")
+    def hello():
+        try:
+            visits = redis.incr("counter")
+        except RedisError:
+            visits = "<i>cannot connect to Redis, counter disabled</i>"
+
+        html = "<h3>Hello {name}!</h3>" \
+            "<b>Hostname:</b> {hostname}<br/>" \
+            "<b>Visits:</b> {visits}"
+        return html.format(name=os.getenv("NAME", "world"), hostname=socket.gethostname(), visits=visits)
+
+    if __name__ == "__main__":
+        app.run(host='0.0.0.0', port=80)
+```
+
+通过`pip install -r requirements.txt`安装Python的Flask、Redis依赖库。这个app打印出环境变量`NAME`和`socket.gethostname()`主机名。如果Redis环境有问题，会输出异常错误信息。
+
+### 构建应用
+
+现在已经准备好了构建的app，再次确认docker-practise目录下包含下面的文件：
+```shell
+    $ ls
+    Dockerfile		app.py			requirements.txt
+```
+
+运行build命令，创建Docker镜像，使用`--tag`或`-t`给镜像打标签：
+```shell
+    $ docker build --tag=friendlyhello .
+    $ docker image ls
+    REPOSITORY                                      TAG                 IMAGE ID            CREATED             SIZE
+    friendlyhello                                   latest              a6cf558f0806        2 days ago          131MB
+```
+
+### 运行应用
+
+
+
+## 第3部分：Services
 
 #### docker-compose.yml
 
@@ -81,3 +221,12 @@ categories: other
     docker stack rm <appname>                             # Tear down an application
     docker swarm leave --force      # Take down a single node swarm from the manager
 ```
+
+## 第4部分：Swarms
+
+## 第5部分：Stacks
+
+## 第6部分：Deploy your app
+
+[1]: https://www.abc12366.com
+[2]: https://hub.docker.com/_/hello-world
