@@ -91,6 +91,7 @@ categories: docker
 ### Python应用
 
 Python应用需要创建两个文件，`requirements.txt`和`app.py`，把这两个文件和`Dockerfile`放到相同的目录。
+
 requirements.txt
 ```
     Flask
