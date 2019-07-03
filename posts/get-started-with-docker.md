@@ -145,7 +145,64 @@ app.py
 
 ### 运行应用
 
+运行应用的本地机器4000端口到容器的80端口使用`-p`参数：
+```shell
+    $ docker run -p 4000:80 friendlyhello
+```
 
+在浏览器中访问`http://localhost:4000`将显示一个web网页，当然你也可以使用命令行工具`curl`。
+![localhost:4000][3]
+
+上面运行应用会在控制台的前台运行，可以使用`CTRL+C`退出控制台；要在在后台运行应用：
+```shell
+    $ docker run -d -p 4000:80 friendlyhello
+```
+
+执行上面的命令后会返回一串很长的容器ID，且容器常驻后台。使用`docker container ls`可以看到容器ID的缩写：
+```shell
+    $ docker container ls
+    CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                  NAMES
+    0920f38be562        friendlyhello       "python app.py"     15 seconds ago      Up 14 seconds       0.0.0.0:4000->80/tcp   zealous_hellman
+```
+
+你将注意到`CONTAINER ID`字段和使用`http://localhost:4000`返回的主机名是一致的。使用`docker container stop`加容器ID结束进程：
+```shell
+    $ docker container stop 0920f38be562
+```
+
+### 共享容器
+
+如果没有Docker帐号，登录[hub.docker.com][4]注册，登录Docker公共仓库：
+```shell
+    $ docker login
+```
+
+给镜像打标记或设置版本使用下面的格式：
+```shell
+    $ docker tag image username/repository:tag 
+```
+比如：
+```shell
+    $ docker tag image ljun51/get-started:part2
+```
+运行[docker image ls][5]查看最近标记的镜像：
+```shell
+    $ docker image ls
+
+    friendlyhello                                   latest              a6cf558f0806        3 days ago          131MB
+    ljun51/get-started                              part2               a6cf558f0806        3 days ago          131MB
+```
+
+发布标记的镜像到Docker仓库中：
+```shell
+    $ docker push ljun51/get-started:part2
+```
+
+从远程仓库中拉取、运行镜像：
+```shell
+    $ docker run -p 4000:80 ljun51/get-started:part2
+```
+如果本地没有可用镜像的时候，Docker将从远程仓库拉取。
 
 ## 第3部分：Services
 
@@ -230,3 +287,5 @@ app.py
 
 [1]: https://www.abc12366.com
 [2]: https://hub.docker.com/_/hello-world
+[3]: https://docs.docker.com/get-started/images/app-in-browser.png
+[4]: https://hub.docker.com
