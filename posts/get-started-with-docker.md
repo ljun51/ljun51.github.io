@@ -217,7 +217,7 @@ app.py
         # replace username/repo:tag with your name and image details
         image: ljun51/docker:latest
         deploy:
-        replicas: 3
+        replicas: 5
         resources:
             limits:
             cpus: "0.1"
@@ -232,6 +232,14 @@ app.py
     webnet:
 ```
 
+这个`docker-compose.yml文件告诉Docker需要做下面的事：
+* 从Docker仓库中拉取镜像
+* 运行该镜像的5个实例作为一个服务命名为`web`，限制每个实例最多使用10%的CPU资源、50MB RAM
+* 如果失败立即重启容器
+* 映射主机的4000端口到`web`的80端口
+* `web`服务的容器实例通过叫做`webnet`的负载均衡网络共享80端口
+* 使用`webnet`网络的默认设置，webnet是一种负载均衡网络
+
 #### 运行负载均衡应用
 
 在运行`docker stack deploy`命令之前需要执行如下命令，如果没有执行`docker stack init`，会返回"this node is not a swarm manager."。
@@ -239,32 +247,32 @@ app.py
     $ docker swarm init
 ```
 
-给应用取一个名称`springboot`:
+给应用取一个名称`getstartedlab`:
 ```shell
-    $ docker stack deploy -c docker-compose.yml springboot
+    $ docker stack deploy -c docker-compose.yml getstartedlab
     $ docker service ls
     ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
-    onevzfj9e50b        springboot_web      replicated          1/1                 ljun51/docker:0.2   *:4000->80/tcp
+    onevzfj9e50b        getstartedlab_web      replicated          5/5                 ljun51/docker:part2   *:4000->80/tcp
 ```
 
 也可以通过运行`docker stack services`加服务名查看：
 ```shell
-    $ docker stack services springboot
+    $ docker stack services getstartedlab
 ```
 
 查看任务服务：
 ```shell
-    $ docker services ps springboot_web
+    $ docker services ps getstartedlab_web
 ```
 
 应用伸缩部署：
 ```shell
-    $ docker stack deploy -c docker-compose.yml springboot
+    $ docker stack deploy -c docker-compose.yml getstartedlab
 ```
 
 关闭应用和swarm：
 ```shell
-    $ docker stack rm springboot
+    $ docker stack rm getstartedlab
     $ docker swarm leave --force
 ```
 
