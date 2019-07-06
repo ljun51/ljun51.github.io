@@ -335,6 +335,7 @@ app.py
 > ```
 
 运行`docker swarm init`将返回预配置的`docker swarm join`命令，运行这个命令可以将其他节点加入swarm集群，如将`myvm2`通过`docker-machine ssh`加入新的swarm作为工作节点：
+
 ```shell
     $ docker-machine ssh myvm2 "docker swarm join \
     --token <token> \
@@ -394,6 +395,7 @@ app.py
 ```
 
 你可以使用`myvm1`或`myvm2`的IP访问集群，创建的网络在集群之间共享并负载平衡。运行`docker-machine ls`获取虚拟机的IP地址，并在浏览器上访问其中任何一个，点击刷新。有5个可能的容器ID都是随机循环的，这表明实现了负载平衡。
+
 ![app-in-browser-swarm][5]
 
 ### 清理并重启swarm
@@ -572,12 +574,15 @@ docker-compose.yml
 ```
 
 6. 检查节点服务，如`http://192.168.99.101`，查看访问者计数器：
+
 ![app-in-browser-redis][7]
 
 另外，在任一节点的IP地址上检查端口8080上的可视化器，并注意看到redis服务与web和可视化器服务一起运行。
 ![visualizer-with-redis][8]
 
 ## 第6部分：Deploy your app
+
+*[https://docs.docker.com/get-started][9]*
 
 [1]: https://www.abc12366.com
 [2]: https://hub.docker.com/_/hello-world
@@ -587,3 +592,4 @@ docker-compose.yml
 [6]: https://docs.docker.com/get-started/images/get-started-visualizer1.png
 [7]: https://docs.docker.com/get-started/images/app-in-browser-redis.png
 [8]: https://docs.docker.com/get-started/images/visualizer-with-redis.png
+[9]: https://docs.docker.com/get-started
