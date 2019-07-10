@@ -2,8 +2,7 @@
 layout: post
 title: 关于 
 description: 黎军的个人简历
-image: assets/images/pic12.jpg
-nav-menu: true
+date: 2019-07-10
 ---
 2008年毕业于江西现代学院网络技术专业，毕业后在江西从事过2年的网络通讯工作，2010年南下广东开始软件开发生涯，2013年来到长沙至今。期间从事Java系列的软件开发，先后研究过云计算（hadoop，elasticsearch）、Javascript系列（前端、Nodejs）、Golang系列、Swift系列软件工程。
 

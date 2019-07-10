@@ -2,8 +2,7 @@
 layout: post
 title: Get started with Docker
 description: docker快速入门
-image: 
-categories: docker
+date: 2019-06-13
 ---
 [TOC]
 

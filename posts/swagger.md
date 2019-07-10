@@ -2,7 +2,6 @@
 layout: post
 title: Swagger 介绍
 description: Swagger是一款强大的、开发API接口的开源框架，它有一个强大的生态系统工具链，这些工具可以帮你设计、构建、文档化、调用你的RESTful接口。Swagger除了提供开源工具之外，也提供SwaggerHub这样的商业化解决方案。
-image: 
 categories: java
 ---
 ### Swagger是什么

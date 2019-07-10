@@ -2,8 +2,7 @@
 layout: post
 title: 大数据试题
 description: 试题集包括Java、SQL、Linux、大数据方面的内容，其中也包括一下开放性的问题，主要考察答题者的发展潜力。
-image: 
-categories: java
+date: 2018-10-12
 ---
 ### Java
 

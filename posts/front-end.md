@@ -2,8 +2,7 @@
 layout: post
 title: 前端试题
 description: 试题集包括HTML、CSS、Javascript、微信开发方面的内容，Javascript涉及到模块化、与服务器交互等内容，其中也包括一下开放性的问题，主要考察答题者的发展潜力。
-image: 
-categories: other
+date: 2018-10-11
 ---
 
 ### HTML

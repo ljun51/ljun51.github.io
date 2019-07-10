@@ -2,8 +2,7 @@
 layout: post
 title: Spring Boot with Docker
 description: 通过docker构建Spring Boot镜像
-image: 
-categories: other
+date: 2019-06-13
 ---
 [toc]
 

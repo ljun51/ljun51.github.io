@@ -2,8 +2,7 @@
 layout: post
 title: kubernetes笔记
 description: 记录学习kubernetes的过程
-image: 
-categories: other
+date: 2019-03-11
 ---
 ### 安装kubectl
 
