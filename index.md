@@ -2,6 +2,7 @@
 
 ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。 
 
+* [SeaweedFS入门][10] - 2019-07-26
 * [Elastic栈容器化][9] - 2019-07-10
 * [Docker快速入门][8] - 2019-06-13
 * [Spring Boot with Docker][7] - 2019-06-13
@@ -12,6 +13,7 @@ ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA�
 * [VIM个人配置][2] - 2017-01-06
 * [服务补偿][1] - 2017-01-12
 
+[10]: http://ljun51.github.io/posts/get-started-with-seaweedfs.html
 [9]: http://ljun51.github.io/posts/elastic-docker.html
 [8]: http://ljun51.github.io/posts/get-started-with-docker.html
 [7]: http://ljun51.github.io/posts/spring-boot-with-docker.html
