@@ -2,7 +2,7 @@
 layout: post
 title: SeaweedFS笔记
 description: 记录学习SeaweedFS的过程
-date: 2019-07-26
+date: 2019-08-06
 ---
 
 ## 介绍
@@ -423,6 +423,255 @@ SeaweedFS不管理块，而是管理数据卷。每个数据卷大小为32GB，�
 ### Filer Server API
 
 你可以在下面的HTTP API后面追加&pretty=y格式化输出JSON数据。
+
+#### Filer server
+
+```
+    # POST/PUT/GET文件
+    # 创建或覆盖文件，目录/path/to会自动创建
+    POST /path/to/file
+    # 获取文件内容
+    GET /path/to/file
+    # 创建或覆盖文件，使用multipart请求中的文件名
+    POST /path/to/
+    # 返回JSON格式的子目录及文件列表
+    GET /path/to/
+    Accept: application/json
+```
+
+示例：
+```
+    curl -F file=@seaweedfs_darwin_amd64.tar "http://localhost:8888/seaweedfs/"
+    {"name":"seaweedfs_darwin_amd64.tar"}
+    
+    curl -F file=@seaweedfsintroduction-190411215802.pdf "http://localhost:8888/seaweedfs/seaweedfsintroduction.pdf"
+    {"name":"seaweedfsintroduction-190411215802.pdf","size":547712,"fid":"8,0a4857e728","url":"http://127.0.0.1:8081/8,0a4857e728"}
+
+    curl -H "Accept: application/json" "http://localhost:8888/seaweedfs/?pretty=y"
+    {
+      "Path": "/seaweedfs",
+      "Entries": [
+        {
+          "FullPath": "/seaweedfs/seaweedfs_darwin_amd64.tar",
+          "Mtime": "2019-08-06T09:49:52+08:00",
+          "Crtime": "2019-08-06T09:49:52+08:00",
+          "Mode": 432,
+          "Uid": 501,
+          "Gid": 20,
+          "Mime": "",
+          "Replication": "000",
+          "Collection": "",
+          "TtlSec": 0,
+          "UserName": "",
+          "GroupNames": null,
+          "SymlinkTarget": "",
+          "chunks": [
+            {
+              "file_id": "10,08b1b7f9be",
+              "size": 33554432,
+              "mtime": 1565056192271756000,
+              "fid": {
+                "volume_id": 10,
+                "file_key": 8,
+                "cookie": 2981624254
+              }
+            },
+            {
+              "file_id": "3,094e97c6a7",
+              "offset": 33554432,
+              "size": 17553408,
+              "mtime": 1565056192485648000,
+              "fid": {
+                "volume_id": 3,
+                "file_key": 9,
+                "cookie": 1318569639
+              }
+            }
+          ]
+        },
+        {
+          "FullPath": "/seaweedfs/seaweedfsintroduction.pdf",
+          "Mtime": "2019-08-06T10:16:17+08:00",
+          "Crtime": "2019-08-06T10:16:17+08:00",
+          "Mode": 432,
+          "Uid": 501,
+          "Gid": 20,
+          "Mime": "application/pdf",
+          "Replication": "000",
+          "Collection": "",
+          "TtlSec": 0,
+          "UserName": "",
+          "GroupNames": null,
+          "SymlinkTarget": "",
+          "chunks": [
+            {
+              "file_id": "8,0a4857e728",
+              "size": 547712,
+              "mtime": 1565057777513573000,
+              "e_tag": "\"2f6a68fa\"",
+              "fid": {
+                "volume_id": 8,
+                "file_key": 10,
+                "cookie": 1213720360
+              }
+            }
+          ]
+        }
+      ],
+      "Limit": 100,
+      "LastFileName": "seaweedfsintroduction.pdf",
+      "ShouldDisplayLoadMore": false
+    }
+```
+
+#### 删除文件
+
+> curl -X DELETE http://localhost:8888/path/to/file
+
+#### 删除文件夹
+
+> curl -X DELETE http://localhost:8888/path/to/dir?recursive=true
+
+## Replication
+
+SeaweedFS是支持副本的。SeaweedFS实现副本不是在文件级别，而是在卷级别。
+
+### 如何使用
+
+1. 启动weed master，可选的指定副本的默认级别
+> ./weed master -defaultReplication=001
+
+2. 启动weed volume
+> ./weed volume -port=8080 -dir=/tmp/1 -max=100 -mserver="master_address:9333" -dataCenter=dc1 -rack=rack1
+> ./weed volume -port=8081 -dir=/tmp/1 -max=100 -mserver="master_address:9333" -dataCenter=dc1 -rack=rack1
+
+在另一个机架：
+> ./weed volume -port=8080 -dir=/tmp/1 -max=100 -mserver="master_address:9333" -dataCenter=dc1 -rack=rack2
+> ./weed volume -port=8081 -dir=/tmp/2 -max=100 -mserver="master_address:9333" -dataCenter=dc1 -rack=rack2
+
+### 副本类型
+
+副本策略的可选参数可以为：
+> 000: 没有复制，只有一个副本
+> 001: 在同一个机架上复制一次
+> 010: 在同一数据中心的不同机架上复制一次
+> 100: 在不同的数据中心复制一次
+> 200: 在另外两个不同的数据中心复制两次
+> 110: 在不同的机架上复制一次，在不同的数据中心复制一次
+
+所以假设副本类型是xyz
+> x: 在其他的数据中心的副本数
+> y: 在其他机架同一个数据中心的副本数
+> z: 在其他服务器相同的机架上的副本数
+
+x,y,z的可选值是0，1，2，所以有9中副本类型，可以很容易的扩展。每个副本类型在物理存储上将会创建x+y+z+1个volume数据文件。启动Master时可以指定默认的副本策略。
+
+### 指定的数据中心分配File Key
+
+> http://localhost:9333/dir/assign?dataCenter=dc1
+
+### 使用TTL存储文件
+
+SeaweedFS使用key~file的存储方式，文件可以指定Time To Live(TTL).
+
+#### 如何使用
+
+如果想指定一个文件的TTL为3min。首先，分配一个TTL为3min的fileId：
+```
+    curl http://localhost:9333/dir/assign?ttl=3m
+    {"fid":"18,018a03d05e","url":"127.0.0.1:8081","publicUrl":"127.0.0.1:8081","count":1}
+```
+
+第二，使用fileId存储文件到卷服务器
+> curl -F "file=@linux.png" http://127.0.0.1:8081/18,018a03d05e?ttl=3m
+
+文件写完后，如果在TTL到期之前读取，文件内容将照常返回。但是如果在TTL到期后读取，则该文件将被报告为丢失并返回未找到的http响应状态。
+
+对于ttl=3m的下一次写入，将使用ttl=3m的相同卷，但是：
+1. 如果ttl=3m的卷已经写满，新卷将会被创建。
+2. 如果3分钟都没有写入操作，这些卷将会被删除。
+
+你或许已经注意到了，ttl=3m使用了2次，第一次分配文件ID，第二次上传实际的文件。这两个TTL没有要求同时请求，只要volume TTL比file TTL大就没有问题。
+
+这为调整文件TTL提供了一定的灵活性，同时减少了TTL卷的数量变化，从而简化TTL卷的管理。
+
+#### 支持的TTL格式
+
+TTL的格式为一个整数后跟一个单位，单位可以是'm', 'h', 'w', 'M', 'y'.
+* 3m: 3 minutes
+* 4h: 4 hours
+* 5d: 5 days
+* 6w: 6 weeks
+* 7M: 7 months
+* 8y: 8 years
+
+#### 如何保证高效
+
+TTL似乎很容易实现，因为如果时间超过TTL，我们只需要将文件报告为缺失。然而，真正的困难是从过期文件中有效地回收磁盘空间，类似于JVM内存垃圾收集，这是一项复杂的工作，需要多年的努力。
+
+Memcached也支持TTL。它通过将条目放入固定大小的slab来解决这个问题。如果一块slab过期，则不需要任何工作，并且可以立即覆盖slab。但是，这种固定大小的slab方法不适用于文件，因为文件内容很少精确地适合于slab。
+
+SeaweedFS非常简单有效地解决了这个磁盘空间垃圾收集问题。与常规系统实现的主要区别之一是TTL与卷以及每个特定文件相关联。在文件ID分配步骤期间，文件ID将分配给具有匹配TTL的卷。定期检查卷（默认情况下每隔5~10秒）。如果已达到最新到期时间，则整个卷中的所有文件都将过期，并且可以安全地删除卷。
+
+#### 实现详情
+
+1. 当分配file key时，master挑选匹配TTL的TTL卷。如果这样的卷不存在，在创建一些。
+2. Volume服务器写入文件内容时会带上过期时间。当文件被访问时，如果文件过期则返回文件不存在。
+3. Volume服务器追踪每个卷的最大过期时间，已经过期的卷不再报告给master。
+4. Master服务器对于已经过期不再报告的卷，不在分配写请求。
+5. 在大约10%的TTL时间或最多10分钟后，Volume服务器将会删除已过期的卷。
+
+#### 部署
+
+对于生产环境，要考虑TTL卷的最大大小。如果写入频繁，TTL卷将会增长到最大的卷大小；相反，如果写入不是很频繁的时候，频繁的删除卷就会浪费资源。可以考虑减少最大卷大小。
+
+推荐不要在同一个集群混用TTL卷和非TTL卷。因为最大卷的默认大小是30GB，而且这个配置是集群级别的。
+
+### Master Server容错
+
+有些用户不需要SPOF（单点故障），但是有没有SPOF似乎成为架构师选择解决方案的标准，虽然goole多年来一直使用单一Master运行其文件系统。SeaweedFS支持容错不是太难。
+
+#### 启动多个服务
+
+下面的命令启动3个master server、3个volume server：
+```
+    weed server -master.port=9333 -dir=./1 -volume.port=8080 -master.peers=localhost:9333,localhost:9334,localhost:9335
+    weed server -master.port=9334 -dir=./2 -volume.port=8081 -master.peers=localhost:9333,localhost:9334,localhost:9335
+    weed server -master.port=9335 -dir=./3 -volume.port=8082 -master.peers=localhost:9333,localhost:9334,localhost:9335
+```
+
+#### 如何工作
+
+Master服务之间使用Raft协议保持一致性、选举领导者。领导者接管管理卷的所有工作，分配文件ID，其他所有master只是简单的转发请求给领导者。
+
+如果领导着停止服务，另一个领导者会被选举，所有卷服务发送心跳和卷信息给新的领导者，新领导者承担所有责任。
+
+在新老领导着的转换期间，新领导者可能只会有部分卷服务器的信息，这就意味着那行还没有发送心跳给新领导者的卷暂时不可用。
+
+#### Master标识
+
+当指定master节点时，节点之间使用户hostname、IP和端口标识身份。hostname或IP在启动master服务之前可以通过“-ip”指定。
+
+下面分别启动master和volume服务，一般可以启动3或5个master服务，然后启动volume服务：
+```
+    weed master -port=9333 -mdir=./1 -peers=localhost:9333,localhost:9334,localhost:9335
+    weed master -port=9334 -mdir=./2 -peers=localhost:9333,localhost:9334,localhost:9335
+    weed master -port=9335 -mdir=./3 -peers=localhost:9333,localhost:9334,localhost:9335
+    # 启动volume服务，指定任意一个master
+    weed volume -dir=./1 -port=8080 -mserver=localhost:9333,localhost:9334,localhost:9335
+    weed volume -dir=./2 -port=8081 -mserver=localhost:9333,localhost:9334,localhost:9335
+    weed volume -dir=./3 -port=8082 -mserver=localhost:9333,localhost:9334,localhost:9335
+    # 推荐使用所有master服务地址，但不强制，也可以指定部分master服务地址
+    weed volume -dir=./3 -port=8082 -mserver=localhost:9333
+    weed volume -dir=./3 -port=8082 -mserver=localhost:9333,localhost:9334
+```
+
+这里的6条命令实际和前面的3个命令的效果是一样的。当有多个master服务，其中一个服务停止的时候，卷服务器可以切换到其他节点。
+
+#### FAQ
+
+Q：在正在运行中的SeaweedFS集群可以添加另外的master服务节点吗？
+A：和zookeeper一样，节点一般不会经常改变。但是如果想添加新的master服务节点，需要停止运行中的集群，在启动是重新指定master节点。对于volume服务，可以使用现有的master服务节点。
 
 ## Filer
 
