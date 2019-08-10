@@ -51,25 +51,28 @@ SeaweedFS使用HTTP REST操作读、写、删除，响应使用JSON或JSONP格�
 
 ### 启动Master Server
 
-> ./weed master
+    ./weed master
 
 ### 启动Volume Servers
 
-> weed volume -dir="/tmp/data1" -max=5 -mserver="localhost:9333" -port=8080 &
-> weed volume -dir="/tmp/data2" -max=10 -mserver="localhost:9333" -port=8081 &
+    weed volume -dir="/tmp/data1" -max=5 -mserver="localhost:9333" -port=8080 &
+    weed volume -dir="/tmp/data2" -max=10 -mserver="localhost:9333" -port=8081 &
 
 ### 写文件
 
 1. 发送HTTP POST、PUT或GET请求到`/dir/assign`获取`fid`和Volume服务URL：
-> curl http://localhost:9333/dir/assign
-  {"fid":"2,01fb400e5a","url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080","count":1}
+
+    curl http://localhost:9333/dir/assign
+    {"fid":"2,01fb400e5a","url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080","count":1}
 
 2. 存储文件内容，根据响应URL及fid发送HTTP multi-part POST请求到`url + '/' + fid`:
-> curl -F file=@/Users/lijun/Downloads/linux.png http://127.0.0.1:8080/2,01fb400e5a
-  {"name":"linux.png","size":127093,"eTag":"28d861cf"}
+
+    curl -F file=@/Users/lijun/Downloads/linux.png http://127.0.0.1:8080/2,01fb400e5a
+    {"name":"linux.png","size":127093,"eTag":"28d861cf"}
 
 如果需要更新文件内容，发送另一个POST请求即可。对于删除，发送HTTP DELETE请求：
-> curl -X DELETE http://127.0.0.1:8080/2,01fb400e5a
+
+    curl -X DELETE http://127.0.0.1:8080/2,01fb400e5a
 
 ### 保存File Id
 
@@ -88,8 +91,9 @@ file key、file cookie使用16进制编码，你可以使用自定义格式存�
 ### 读取文件
 
 使用volumeId查询volume服务器的URL：
-> curl http://localhost:9333/dir/lookup?volumeId=2
-  {"volumeId":"2","locations":[{"url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080"}]}
+
+    curl http://localhost:9333/dir/lookup?volumeId=2
+    {"volumeId":"2","locations":[{"url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080"}]}
 
 大部分情况下你可以缓存这个结果，因为通常不会有太多的volume服务器，volume也不会轻易移动。根据副本类型的不同，一个volume可能会有多个副本位置，只需要随机挑选一个即可。
 
@@ -98,16 +102,17 @@ file key、file cookie使用16进制编码，你可以使用自定义格式存�
 
 注意上面添加了一个文件扩展`.jpg`，这是可选的，只是客户端指定文件内容类型的一种方式。你可以使用下面中的任何一种：
 
-> http://localhost:8080/2/01fb400e5a/my_preferred_name.jpg
-> http://localhost:8080/2/01fb400e5a.jpg
-> http://localhost:8080/2,01fb400e5a.jpg
-> http://localhost:8080/2/01fb400e5a
-> http://localhost:8080/2,01fb400e5a
+    http://localhost:8080/2/01fb400e5a/my_preferred_name.jpg
+    http://localhost:8080/2/01fb400e5a.jpg
+    http://localhost:8080/2,01fb400e5a.jpg
+    http://localhost:8080/2/01fb400e5a
+    http://localhost:8080/2,01fb400e5a
 
 如果想获取图像的缩放版本，添加下面的参数：
-> http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200
-> http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200&mode=fit
-> http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200&mode=fill
+
+    http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200
+    http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200&mode=fit
+    http://localhost:8080/2/01fb400e5a.jpg?height=200&width=200&mode=fill
 
 ### Rack-Aware和Data Center-Aware复制
 
@@ -115,28 +120,32 @@ SeaweedFS在volume级别使用副本策略。当你获取file id时，可以指�
 > curl http://localhost:9333/dir/assign?replication=001
 
 副本策略的可选参数可以为：
-> 000: 没有复制，只有一个副本
-> 001: 在同一个机架上复制一次
-> 010: 在同一数据中心的不同机架上复制一次
-> 100: 在不同的数据中心复制一次
-> 200: 在另外两个不同的数据中心复制两次
-> 110: 在不同的机架上复制一次，在不同的数据中心复制一次
+
+    000: 没有复制，只有一个副本
+    001: 在同一个机架上复制一次
+    010: 在同一数据中心的不同机架上复制一次
+    100: 在不同的数据中心复制一次
+    200: 在另外两个不同的数据中心复制两次
+    110: 在不同的机架上复制一次，在不同的数据中心复制一次
 
 所以假设副本类型是xyz
-> x: 在其他的数据中心的副本数
-> y: 在其他机架同一个数据中心的副本数
-> z: 在其他服务器相同的机架上的副本数
+
+    x: 在其他的数据中心的副本数
+    y: 在其他机架同一个数据中心的副本数
+    z: 在其他服务器相同的机架上的副本数
 
 x,y,z的可选值是0，1，2，所以有9中副本类型，可以很容易的扩展。每个副本类型在物理存储上将会创建x+y+z+1个volume数据文件。启动Master时可以指定默认的副本策略。
 
 ### 在指定的数据中心分配File Key
 
 在启动volume服务时指定数据中心的名称：
-> weed volume -dir=/tmp/data1 -port=8080 -dataCenter=dc1
-> weed volume -dir=/tmp/data2 -port=8081 -dataCenter=dc2
+
+    weed volume -dir=/tmp/data1 -port=8080 -dataCenter=dc1
+    weed volume -dir=/tmp/data2 -port=8081 -dataCenter=dc2
 
 当请求一个file key时，"dataCenter"参数限制在指定数据中心已分配volume上。例如，指定分配的volume在"dc1":
-> http://localhost:9333/dir/assign?dataCenter=dc1
+
+    http://localhost:9333/dir/assign?dataCenter=dc1
 
 ## 架构
 
