@@ -10,13 +10,13 @@ SeaweedFS是一个简单高扩展性的分布式文件系统，它可以：
 1. 存储数十亿文件
 2. 访问文件非常快
 
-SeaweedFS作为一个Object Store而设计可以高效的处理小文件。而不是采用以Master节点管理所以文件元数据的方式，Master节点仅仅管理文件Volumes，Volumes管理文件和文件元数据。这样就减轻了Master节点的压力，并将文件元数据传播到Volume服务器，从而使访问文件的速度更快（只需要读取磁盘一次）。
+SeaweedFS作为一个Object Store而设计的系统可以高效的处理海量小文件。而不是采用以Master节点管理所有文件元数据的方式，Master节点仅仅管理文件Volume，Volume管理文件和文件元数据。这样就减轻了Master节点的压力，并将文件元数据转发到Volume服务，从而使访问文件的速度更快（只需要读取磁盘一次）。
 
 每个文件的元数据只有40bytes的磁盘开销。使用O(1)的磁盘读取非常简单，可以使用实际用例测试性能。
 
 SeaweedFS采用Facebook的Haystack设计论文实现，使用Facebook的Warm BLOB存储系统（f4）的实现了擦除编码。
 
-SeaweedFS使用Object Store就可以很好的运行，也可以使用Filer以支持目录和POSIX访问。Filer是一个独立、线性扩展、无状态的服务器，可以自定义元数据存储，如MySql、Postgres、Redis、Cassandra、LevelDB。
+SeaweedFS只使用Object Store就可以很好的运行，也可以使用Filer以支持目录和POSIX访问。Filer是一个独立、线性扩展、无状态的服务器，可以自定义元数据存储，如MySql、Postgres、Redis、Cassandra、LevelDB。
 
 ## 特性
 
@@ -56,36 +56,50 @@ SeaweedFS使用HTTP REST操作读、写、删除，响应使用JSON或JSONP格�
 
 ### 启动Master Server
 
-> ./weed master -h # 查看可用参数
-> ./weed master
+```
+    ./weed master -h # 查看可用参数
+    ./weed master
+```
 
-Master服务仪表盘可以在浏览器中输入`http://hostname:port`的形式访问，比如：http://localhost:9333。Volume服务可以通过`http://hostname:port/ui/index.html`，比如：http://localhost:8080/ui/index.html。
+Master服务仪表盘可以在浏览器中输入`http://hostname:port`的形式访问，比如：http://localhost:9333。
+
+Volume服务可以通过`http://hostname:port/ui/index.html`，比如：http://localhost:8080/ui/index.html。
 
 ### 启动Volume Servers
 
-> ./weed volume -h # 查看可以参数
-> ./weed volume -dir="/tmp/data1" -max=5 -mserver="localhost:9333" -port=8080 &
-> ./weed volume -dir="/tmp/data2" -max=10 -mserver="localhost:9333" -port=8081 &
+```
+    ./weed volume -h # 查看可以参数
+    ./weed volume -dir="/tmp/data1" -max=5 -mserver="localhost:9333" -port=8080 &
+    ./weed volume -dir="/tmp/data2" -max=10 -mserver="localhost:9333" -port=8081 &
+```
 
 ### 启动一个Master服务和一个Volume服务
 > ./weed server -master.port=9333 -volume.port=8080 -dir="./data"
 
 ### 测试SeaweedFS
 
-> ./weed upload -dir="/some/big/folder"
-> ./weed upload -dir="/some/big/folder" -include=*.txt
+```
+    ./weed upload -dir="/some/big/folder"
+    ./weed upload -dir="/some/big/folder" -include=*.txt
+```
 
 `-dir`指定需要上传的目录，`-include`指定上传的文件
 
 ### 写文件
 
 1. 发送HTTP POST、PUT或GET请求到`/dir/assign`获取`fid`和Volume服务URL：
-> curl http://localhost:9333/dir/assign
-  {"fid":"2,01fb400e5a","url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080","count":1}
+
+```
+    curl http://localhost:9333/dir/assign
+    {"fid":"2,01fb400e5a","url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080","count":1}
+```
 
 2. 存储文件内容，根据响应URL及fid发送HTTP multi-part POST请求到`url + '/' + fid`:
-> curl -F file=@/Users/lijun/Downloads/linux.png http://127.0.0.1:8080/2,01fb400e5a
-  {"name":"linux.png","size":127093,"eTag":"28d861cf"}
+
+```
+    curl -F file=@/Users/lijun/Downloads/linux.png http://127.0.0.1:8080/2,01fb400e5a
+    {"name":"linux.png","size":127093,"eTag":"28d861cf"}
+```
 
 如果需要更新文件内容，发送另一个POST请求即可。对于删除，发送HTTP DELETE请求：
 > curl -X DELETE http://127.0.0.1:8080/2,01fb400e5a
@@ -107,8 +121,9 @@ file key、file cookie使用16进制编码，你可以使用自定义格式存�
 ### 读取文件
 
 使用volumeId查询volume服务器的URL：
-> curl http://localhost:9333/dir/lookup?volumeId=2
-  {"volumeId":"2","locations":[{"url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080"}]}
+
+    curl http://localhost:9333/dir/lookup?volumeId=2
+    {"volumeId":"2","locations":[{"url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080"}]}
 
 大部分情况下你可以缓存这个结果，因为通常不会有太多的volume服务器，volume也不会轻易移动。根据副本类型的不同，一个volume可能会有多个副本位置，只需要随机挑选一个即可。
 
@@ -765,6 +780,207 @@ Filer有一个连接到Master的持久客户端，以获取所有卷的位置更
 * chown
 * soft link
 * display free disk space
+
+## 使用案例
+
+### 保存不通大小的图片
+
+每个图片在数据库中通常保存一个file key。但是，有时候需要保存多个版本，比如：缩略图、小尺寸、中尺寸、大尺寸、原始图。SeaweedFS可以使用相同的file key存储不同的版本，解决办法是先分配5个file key：
+```
+    curl http://<host>:<port>/dir/assign?count=5
+    {"fid":"22,0105b64621","url":"127.0.0.1:8080","publicUrl":"127.0.0.1:8080","count":5}
+```
+
+在卷服务器上保存图片的5个版本，每个图片的URL可以是：
+```
+    curl -F file=@/upload.png http://127.0.0.1:8080/22,0105b64621
+    curl -F file=@/upload.png http://127.0.0.1:8080/22,0105b64621_1
+    curl -F file=@/upload.png http://127.0.0.1:8080/22,0105b64621_2
+    curl -F file=@/upload.png http://127.0.0.1:8080/22,0105b64621_3
+    curl -F file=@/upload.png http://127.0.0.1:8080/22,0105b64621_4
+```
+
+### 覆盖mine types
+
+正确的做法是：
+> curl -F "file=@myImage.png;type=image/png" http://127.0.0.1:8080/5,2730a7f18b44
+
+错误的做法是：
+> curl -H "Content-Type:image/png" -F file=@myImage.png http://127.0.0.1:8080/5,2730a7f18b44
+
+### 安全SeaweedFS
+
+简单的方式是使用防火墙支持所以的master服务器和volume服务器。
+
+白名单机制也是支持的，只有白名单中的IP列表才有写入权限：
+```
+    weed master -whiteList="::1,127.0.0.1"
+    weed volume -whiteList="::1,127.0.0.1"
+```
+
+### 数据迁移
+
+```
+    weed master -mdir="/tmp/mdata" -defaultReplication="001" -ip="localhost" -port=9334
+    weed volume -dir=/tmp/vol1/ -mserver="localhost:9334" -ip="localhost" -port=8081
+    weed volume -dir=/tmp/vol2/ -mserver="localhost:9334" -ip="localhost" -port=8082
+    weed volume -dir=/tmp/vol3/ -mserver="localhost:9334" -ip="localhost" -port=8083
+```
+
+```
+    ls vol1 vol2 vol3
+    vol1:
+    1.dat 1.idx 2.dat 2.idx 3.dat 3.idx 5.dat 5.idx
+    vol2:
+    2.dat 2.idx 3.dat 3.idx 4.dat 4.idx 6.dat 6.idx
+    vol3:
+    1.dat 1.idx 4.dat 4.idx 5.dat 5.idx 6.dat 6.idx
+```
+
+停止所以master、volume服务，将vol3下的文件移到vol1和vol2。移动x.dat和x.idx从一个volume服务到另一个volume服务是没问题的，因为它们完全一致，可以使用md5校验。
+
+```
+    md5 vol1/1.dat vol2/1.dat
+    MD5 (vol1/1.dat) = c1a49a0ee550b44fef9f8ae9e55215c7
+    MD5 (vol2/1.dat) = c1a49a0ee550b44fef9f8ae9e55215c7
+    md5 vol1/1.idx vol2/1.idx
+    MD5 (vol1/1.idx) = b9edc95795dfb3b0f9063c9cc9ba8095
+    MD5 (vol2/1.idx) = b9edc95795dfb3b0f9063c9cc9ba8095
+```
+
+```
+    ls vol1 vol2 vol3
+    vol1:
+    1.dat 1.idx 2.dat 2.idx 3.dat 3.idx 4.dat 4.idx 5.dat 5.idx 6.dat 6.idx
+    vol2:
+    1.dat 1.idx 2.dat 2.idx 3.dat 3.idx 4.dat 4.idx 5.dat 5.idx 6.dat 6.idx
+    vol3:
+```
+
+```
+    weed master -mdir="/tmp/mdata" -defaultReplication="001" -ip="localhost" -port=9334
+    weed volume -dir=/tmp/vol1/ -mserver="localhost:9334" -ip="localhost" -port=8081
+    weed volume -dir=/tmp/vol2/ -mserver="localhost:9334" -ip="localhost" -port=8082
+```
+
+现在完成了从locahost:8083到localhost:8081/localhost:8082的数据迁移。
+
+## 运维
+
+### 系统监控
+
+SeaweedFS使用Prometheus存储监控数据，使用Grafana可视化展示。SeaweedFS向Prometheus Push Gateway发布指标，网关传递给Prometheus服务器。
+
+#### 配置
+
+只需要将监控地址加到`weed master`或`weed server`命令行后面，如果有多个master，分别追加命令行参数。
+```
+    weed master -metrics.address=<prometheus_gateway_host_name>:<prometheus_gateway_port>
+    # example
+    weed master -metrics.address=localhost:9091
+
+    weed server -metrics.address=<prometheus_gateway_host_name>:<prometheus_gateway_port>
+    # example
+    weed server -metrics.address=localhost:9091
+```
+
+SeaweedFS filer管理器或volume服务器将从master服务器读取此度量标准配置，并将度量标准直接报告给Prometheus网关。
+
+### weed shell
+
+`weed shell`启动一个交互式的控制台可以处理一些运维工作。下面的操作是支持的：
+
+对于master、volume服务器：
+* 列出所有集合分类
+* 列出所有卷
+* 修复正在复制的卷
+
+对于文件管理器：
+* 显示磁盘使用量
+
+例如：
+```
+    $ weed shell
+    > fs.du http://localhost:8888/seaweedfs/
+    block:   3	byte:  51655552	/seaweedfs
+```
+
+有时候一些volume服务下线、新的volume服务器被加入，可以运行下面的命令修复正在被复制的卷：
+```
+    # check any volume that are under replicated, and there are servers that meet the replica placement requirement
+    $ echo "volume.fix.replication -n " | weed shell
+    replicating volume 241 001 from localhost:8080 to dataNode 127.0.0.1:7823 ...
+
+    # found one, let's really do it
+    $ echo "volume.fix.replication" | weed shell
+    replicating volume 241 001 from localhost:8080 to dataNode 127.0.0.1:7823 ...
+
+    # all volumes are replicated now
+    $ echo "volume.fix.replication -n" | weed shell
+    no under replicated volumes
+```
+
+### 数据备份
+
+> weed backup -server=master:port -dir=. -volumeId=5
+ 
+上面的命令备份卷5，如果卷5不存在，本地不会创建文件。这样你就可以创建一个简单的脚本从1循环到100，所以存在的卷都会被创建，不存在的也不会受影响。
+
+## 安全
+
+### 安全概述
+
+SeaweedFS是有多个volume服务器组成的分布式系统，volume服务器有没有授权就能访问系统的风险，如果想从任意地方访问volume服务，就需要考虑没人可以恶意篡改数据。
+
+首先要解决volume服务器的问题，下面的内容还没有涵盖到：
+1. master服务http REST服务化
+2. filer服务http REST服务化
+
+#### 生成`security.toml`文件
+
+SeaweedFS服务通常支持两种操作：gRPC和REST。
+
+#### 安全的gRPC操作
+
+下面的操作已通过gRPC实现：
+* 从filer到master的请求
+* 从master到volume server的请求
+* 从filer、其他客户端（mount、s3、filer.replicate等）到volume server的删除操作
+* 从客户端到filer的请求
+
+通过自定义security.toml文件，可以选择使用TLS保护所有gRPC操作。
+
+#### 安全Volume Servers
+
+除了上面提到的gRPC之外，只能通过文件上传、更新、删除操作来更改卷服务器。具体的每个文件操作控制可以使用Json Web Token（JWT）授权。
+
+##### 基于JWT的访问控制
+
+要启用基于JWT的访问控制：
+1. 通过`weed scaffold -config=security`生成`security.toml`文件
+2. 设置`jwt.signing.key`的加密字符串
+3. 拷贝`security.toml`文件到其他master、volue服务器
+
+##### 基于JWT的访问控制是如何工作的
+
+* 对于上传一个新文件，当通过http://<master>:<port>/dir/assign请求file key时，master服务使用`jwt.signing.key`生成一个签名的JWT，并设置响应头`Authorization`，JWT的有效时间是10秒。
+* 对于更新或删除一个文件，JWT可以从http://<master>:<port>/dir/lookup?fileId=xxxxx的响应头中读取`Authorization`。
+* 当向volume服务器发送上传、更新、删除操作时，请求头`Authorization`应该是JWT字符串，当volume服务使用`jwt.signing.key`的JWT验证通过时，操作才会被允许。
+
+JWT摘要：
+* JWT被设置在`/dir/assign`或`/dir/lookup`的`Authorization`相应头
+* JWT从请求头中读取`Authorization`
+* JWT的有效时间是10秒
+* JWT一次只能创建、修改、删除一个文件
+* Volume服务的HTTP只能读取，每次只能一个文件，不能迭代读取所有文件
+* 当企业jwt.signing时，将禁用其他卷服务器的HTTP访问
+
+##### JWT的读取访问控制
+
+卷服务器还可以检验JWT的读取，此模式不适用于weed filer。如果卷服务器暴露在公开环境，但是你又不希望任何人都可以访问（比如付费内容），这个功能将会很有用。
+
+* 要启用这个功能，设置`security.toml`文件的`jwt.signing.read.key`
+* 要获取JWT读取文件内容，可以取http://<master>:<port>/dir/lookup?fileId=xxxxx&read=yes的响应头`Authorization`。
 
 前往[官方文档][1].
 
