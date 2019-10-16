@@ -1,65 +1,27 @@
-# Forty - Jekyll Theme
+###### 牛古说--ljun51的个人开发之路
 
-A Jekyll version of the "Forty" theme by [HTML5 UP](https://html5up.net/).  
+ljun51（牛古）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。 
 
-![Forty Theme](assets/images/forty.jpg "Forty Theme")
+* [SeaweedFS详细介绍][11] - 2019-08-06
+* [SeaweedFS入门][10] - 2019-07-26
+* [Elastic栈容器化][9] - 2019-07-10
+* [Docker快速入门][8] - 2019-06-13
+* [Spring Boot with Docker][7] - 2019-06-13
+* [Kubernetes简易教程][6] - 2019-03-11
+* [大数据分析面试题][5] - 2018-10-12
+* [前端面试题][4] - 2018-10-11
+* [Swagger简易教程][3] - 2017-01-05
+* [VIM个人配置][2] - 2017-01-06
+* [服务补偿][1] - 2017-01-12
 
-# How to Use
-
-For those unfamiliar with how Jekyll works, check out [jekyllrb.com](https://jekyllrb.com/) for all the details, 
-or read up on just the basics of [front matter](https://jekyllrb.com/docs/frontmatter/), [writing posts](https://jekyllrb.com/docs/posts/), 
-and [creating pages](https://jekyllrb.com/docs/pages/).
-
-- **GitLab**: Simply fork this repository and start editing the `_config.yml` file!  
-- **GitHub**: Fork this reposity and create a branch named `gh-pages`, then start editing the `_config.yml` file! The `.gitlab-ci.yml` file is only needed for GitLab Pages, so feel free to delete this if you are using GitHub instead.
-
-# Added Features
-
-* **[Formspree.io](https://formspree.io/) contact form integration** - just add your email to the `_config.yml` and it works!
-* Use `_config.yml` to **set whether the homepage tiles should pull pages or posts**, as well as how many to display.
-* Add your **social profiles** easily in `_config.yml`. Only social profiles buttons you enter in `config.yml` show up on the site footer!
-* Set **featured images** in front matter.
-
-# Credits
-
-Original README from HTML5 UP:
-
-```
-Forty by HTML5 UP
-html5up.net | @ajlkn
-Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-
-
-This is Forty, my latest and greatest addition to HTML5 UP and, per its incredibly
-creative name, my 40th (woohoo)! It's built around a grid of "image tiles" that are
-set up to smoothly transition to secondary landing pages (for which a separate page
-template is provided), and includes a number of neat effects (check out the menu!),
-extra features, and all the usual stuff you'd expect. Hope you dig it!
-
-Demo images* courtesy of Unsplash, a radtastic collection of CC0 (public domain) images
-you can use for pretty much whatever.
-
-(* = not included)
-
-AJ
-aj@lkn.io | @ajlkn
-
-
-Credits:
-
-	Demo Images:
-		Unsplash (unsplash.com)
-
-	Icons:
-		Font Awesome (fortawesome.github.com/Font-Awesome)
-
-	Other:
-		jQuery (jquery.com)
-		html5shiv.js (@afarkas @jdalton @jon_neal @rem)
-		background-size polyfill (github.com/louisremi)
-		Misc. Sass functions (@HugoGiraudel)
-		Respond.js (j.mp/respondjs)
-		Skel (skel.io)
-```
-
-Repository [Jekyll logo](https://github.com/jekyll/brand) icon licensed under a [Creative Commons Attribution 4.0 International License](http://choosealicense.com/licenses/cc-by-4.0/).
+[11]: http://ljun51.github.io/posts/seaweedfs.html
+[10]: http://ljun51.github.io/posts/get-started-with-seaweedfs.html
+[9]: http://ljun51.github.io/posts/elastic-docker.html
+[8]: http://ljun51.github.io/posts/get-started-with-docker.html
+[7]: http://ljun51.github.io/posts/spring-boot-with-docker.html
+[6]: http://ljun51.github.io/posts/kubernetes.html
+[5]: http://ljun51.github.io/posts/big-data.html
+[4]: http://ljun51.github.io/posts/front-end.html
+[3]: http://ljun51.github.io/posts/swagger.html
+[2]: http://ljun51.github.io/posts/vim.html
+[1]: http://ljun51.github.io/posts/service-comp.html
