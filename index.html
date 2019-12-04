@@ -183,7 +183,7 @@ $ docker run -p 9000:9000 ljun51/docker --server.port=9000</code></pre><p><code>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2019/11/18/Spring-Boot-with-Docker/" data-id="ck3e3g8790000zo9kfe932bna" class="article-share-link">Share</a>
+      <a data-url="https://ljun51.github.io/2019/11/18/Spring-Boot-with-Docker/" data-id="ck3qomrfx0002p29kdg0h7zne" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li></ul>
@@ -248,10 +248,55 @@ $ docker run -p 9000:9000 ljun51/docker --server.port=9000</code></pre><p><code>
 
 <p>还有一种方式可以快速定义资源文件，即参考现有的资源配置。比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods open-user-74b8b67bc9-kgkxx -o yaml --export &gt; pods-demo.yaml</span><br></pre></td></tr></table></figure>
+
+<h2 id="Kubernetes认证授权"><a href="#Kubernetes认证授权" class="headerlink" title="Kubernetes认证授权"></a>Kubernetes认证授权</h2><p>使用kubeadm部署的Kubernetes集群默认提供了拥有集群管理权限的kubeconfig配置文件/etc/kubernetes/admin.conf，它可以复制到任何拥有kubectl的主机上管理集群。管理员可以创建其他账号授予非管理员管理部分资源，其配置过程可以分为两部分：</p>
+<ol>
+<li><p>为用户创建专用私钥及证书</p>
+</li>
+<li><p>将步骤1的配置置于kubeconfig文件中<br>下面给出创建过程，创建了一个kubernetes-ljun51用户，（需要以root身份）：</p>
+</li>
+<li><p>为目标用户<code>kubernetes-ljun51</code>创建专用私钥及证书，保存在/etc/kubernetes/pki目录</p>
+<ol>
+<li><p>生成私钥文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># cd /etc/kubernetes/kpi</span><br><span class="line"># (umask 077; openssl genrsa -out kubernetes-ljun51.key 2048)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建证书签署请求，<code>-subj</code>选项中的CN的值将作为用户名，<code>O</code>的值作为用户组</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># openssl req -new -key kubernetes-ljun51.key -out kubernetes-ljun51.csr \</span><br><span class="line"> -subj &quot;/CN=kubernetes-ljun51/O=kubernetes-Users&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>基于kubeadm安装坤儿呢特色集群时生成的CA签署证书，有效时长3650天</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># openssl x509 -req -in kubernetes-ljun51.csr -CA ca.crt -CAkey ca.key \</span><br><span class="line">-CAcreateserial -out kubernetes-ljun51.crt -days 3650</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>验证证书信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># openssl x509 -in kubernetes-ljun51.crt -text -noout</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>以默认管理员kubenetes-admin@kubernetes为新建的kubernetes-ljun51设定kube-config配置文件，配置结果将默认保存于当前系统用户的./kube/config文件中，也可以使用kubectl –kubeconfig选项指定自定义的专用文件路径。</p>
+<ol>
+<li><p>配置集群信息，包括集群名称、API Server URL和CA证书。若集群已经存在可省略此步，另外，提供的新配置不能与现有配置中的集群名称相同，否则会覆盖：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ k config set-cluster abc12366 --embed-certs=true \</span><br><span class="line">--certificate-authority=/etc/kubernetes/pki/ca.crt \</span><br><span class="line">--server=&quot;https://118.118.116.142:6443&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置客户端证书及密钥，用户名信息会通过命令从证书Subject的CN值中自动提取，例如前面创建csr时使用的”CN=kubernetes-ljun51”，而组名则来自于”O=kubernetes-Users”的定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo kubectl config set-credentials kubernetes-ljun51 --embed-certs=true \</span><br><span class="line">--client-certificate=/etc/kubernetes/pki/kubernetes-ljun51.crt \</span><br><span class="line">--client-key=/etc/kubernetes/pki/kubernetes-ljun51.key</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置上下文，用来组合cluster和credentials，即访问的集群上下文。如果为管理了多个集群而设置了多个环境，则可以使用use-context切换：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ k config set-context kubernetes-ljun51@abc12366 --cluster=abc12366 --user=kubernetes-ljun51</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>指定要使用的上下问，切换为以<code>kubernetes-ljun51</code>访问集群：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ k config use-context kubernetes-ljun51@abc12366</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试访问集群资源，不过在启用RBAC的集群上没有访问权限：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ k get pods</span><br></pre></td></tr></table></figure>
+<p>若需要切换至管理账号，可使用<code>kubectl config use-context kubernetes-admin@kubernetes</code>命令，临时使用可使用<code>kubectl --context=kubernetes-ljun51@abc12366 get pods</code>命令.</p>
+</li>
+</ol>
+</li>
+</ol>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2019/11/07/kubernetes/" data-id="ck3e3g87o0003zo9k9rsx0jwq" class="article-share-link">Share</a>
+      <a data-url="https://ljun51.github.io/2019/11/07/kubernetes/" data-id="ck3qomrft0001p29kgpo0frmn" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -302,7 +347,7 @@ $ docker run -p 9000:9000 ljun51/docker --server.port=9000</code></pre><p><code>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2019/11/05/hello-world/" data-id="ck3e3g87j0001zo9kfhzr1sui" class="article-share-link">Share</a>
+      <a data-url="https://ljun51.github.io/2019/11/05/hello-world/" data-id="ck3qomrfh0000p29k4ajb3ess" class="article-share-link">Share</a>
       
       
     </footer>
