@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一文读懂ZGC | 牛古说</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="关于ZGCZGC（Z Garbage Collector）是一种可扩展的低延迟垃圾回收器，旨在满足以下目标：  亚毫秒（Sub-millisencond）级的最大暂停时间 暂停时间不会随着heap、live-set、root-set的增大而增加 可以处理8MB到16TB的堆大小  ZGC支持：  并发（Concurrent） 基于Region 压缩（Compacting） NUMA-aware 使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文读懂ZGC">
+<meta property="og:url" content="https://ljun51.github.io/2021/07/28/zgc/index.html">
+<meta property="og:site_name" content="牛古说">
+<meta property="og:description" content="关于ZGCZGC（Z Garbage Collector）是一种可扩展的低延迟垃圾回收器，旨在满足以下目标：  亚毫秒（Sub-millisencond）级的最大暂停时间 暂停时间不会随着heap、live-set、root-set的增大而增加 可以处理8MB到16TB的堆大小  ZGC支持：  并发（Concurrent） 基于Region 压缩（Compacting） NUMA-aware 使">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-07-28T01:44:53.000Z">
+<meta property="article:modified_time" content="2024-03-21T13:33:53.016Z">
+<meta property="article:author" content="牛古">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="jvm">
+<meta property="article:tag" content="zgc">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="牛古说" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">牛古说</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">不动笔墨不读书。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ljun51.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-zgc" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/28/zgc/" class="article-date">
+  <time class="dt-published" datetime="2021-07-28T01:44:53.000Z" itemprop="datePublished">2021-07-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一文读懂ZGC
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="关于ZGC"><a href="#关于ZGC" class="headerlink" title="关于ZGC"></a>关于ZGC</h1><p>ZGC（Z Garbage Collector）是一种可扩展的低延迟垃圾回收器，旨在满足以下目标：</p>
+<ul>
+<li>亚毫秒（Sub-millisencond）级的最大暂停时间</li>
+<li>暂停时间不会随着heap、live-set、root-set的增大而增加</li>
+<li>可以处理8MB到16TB的堆大小</li>
+</ul>
+<p>ZGC支持：</p>
+<ul>
+<li>并发（Concurrent）</li>
+<li>基于Region</li>
+<li>压缩（Compacting）</li>
+<li>NUMA-aware</li>
+<li>使用着色指针</li>
+<li>使用负载屏障</li>
+</ul>
+<p>ZGC的核心是一个并发垃圾收集器，这意味着所有繁重的工作都在Java线程执行的同时完成。这极大地限制了垃圾收集对应用程序响应时间的影响。</p>
+<h1 id="JVM如何设置"><a href="#JVM如何设置" class="headerlink" title="JVM如何设置"></a>JVM如何设置</h1><p>JVM一般通过JAVA_OPTS环境变量设置，如果使用Tomcat，可以使用CATALINA_OPTS设置。JAVA_OPTS与CATALINA_OPTS的不同是：</p>
+<ul>
+<li>[JAVA_OPTS]: (optional) Java runtime options used when the “start”, “stop” or “run” command is executed</li>
+<li>[CATALINA_OPTS]: (optional) Java runtime options used when the “start” or “run” command is executed</li>
+</ul>
+<h1 id="支持的平台"><a href="#支持的平台" class="headerlink" title="支持的平台"></a>支持的平台</h1><table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Supported</th>
+<th>Since</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Linux&#x2F;AArch64</td>
+<td>支持</td>
+<td>JDK 13</td>
+<td></td>
+</tr>
+<tr>
+<td>Linux&#x2F;x64</td>
+<td>支持</td>
+<td>JDK 11</td>
+<td></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>支持</td>
+<td>JDK 14</td>
+<td></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>支持</td>
+<td>JDK 14</td>
+<td>Requires Windows version 1803 (Windows 10 or Windows Server 2019) or later.</td>
+</tr>
+</tbody></table>
+<h1 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h1><p>如果您是第一次尝试 ZGC，请从使用以下 GC 选项开始：</p>
+<blockquote>
+<p>-XX:+UseZGC -Xmx<size> -Xlog:gc</p>
+</blockquote>
+<p>如需更详细的日志记录，请使用以下选项：（在VSCode中加*，启动报错）</p>
+<blockquote>
+<p>-XX:+UseZGC -Xmx<size> -Xlog:gc*</p>
+</blockquote>
+<p>示例代码：</p>
+<blockquote>
+<p>JAVA_OPTS&#x3D;”-XX:+UseZGC -Xmx1024m -Xlog:gc”</p>
+</blockquote>
+<h1 id="配置和调优"><a href="#配置和调优" class="headerlink" title="配置和调优"></a>配置和调优</h1><h2 id="General-GC-Options"><a href="#General-GC-Options" class="headerlink" title="General GC Options"></a>General GC Options</h2><ul>
+<li>-XX:MinHeapSize, -Xms</li>
+<li>-XX:InitialHeapSize, -Xms</li>
+<li>-XX:MaxHeapSize, -Xmx</li>
+<li>-XX:SoftMaxHeapSize</li>
+<li>-XX:ConcGCThreads</li>
+<li>-XX:ParallelGCThreads</li>
+<li>-XX:UseLargePages</li>
+<li>-XX:UseTransparentHugePages</li>
+<li>-XX:UseNUMA</li>
+<li>-XX:SoftRefLRUPolicyMSPerMB</li>
+<li>-XX:AllocateHeapAt</li>
+</ul>
+<h2 id="ZGC-Options"><a href="#ZGC-Options" class="headerlink" title="ZGC Options"></a>ZGC Options</h2><ul>
+<li>-XX:ZAllocationSpikeTolerance</li>
+<li>-XX:ZCollectionInterval</li>
+<li>-XX:ZFragmentationLimit</li>
+<li>-XX:ZMarkStackSpaceLimit</li>
+<li>-XX:ZProactive</li>
+<li>-XX:ZUncommit</li>
+<li>-XX:ZUncommitDelay</li>
+</ul>
+<h2 id="ZGC-Diagnostic-Options-XX-UnlockDiagnosticVMOptions"><a href="#ZGC-Diagnostic-Options-XX-UnlockDiagnosticVMOptions" class="headerlink" title="ZGC Diagnostic Options (-XX:+UnlockDiagnosticVMOptions)"></a>ZGC Diagnostic Options (-XX:+UnlockDiagnosticVMOptions)</h2><ul>
+<li>-XX:ZStatisticsInterval</li>
+<li>-XX:ZVerifyForwarding</li>
+<li>-XX:ZVerifyMarking</li>
+<li>-XX:ZVerifyObjects</li>
+<li>-XX:ZVerifyRoots</li>
+<li>-XX:ZVerifyViews</li>
+</ul>
+<h2 id="启用ZGC"><a href="#启用ZGC" class="headerlink" title="启用ZGC"></a>启用ZGC</h2><p>使用<code>-XX:+UseZGC</code>参数启用ZGC。</p>
+<h2 id="设置Heap大小"><a href="#设置Heap大小" class="headerlink" title="设置Heap大小"></a>设置Heap大小</h2><p>ZGC最重要的调优选项是设置最大堆（Heap）大小 (<code>-Xmx&lt;size&gt;</code>)。由于ZGC是并发收集器，因此必须选择最大堆大小：</p>
+<ol>
+<li>堆可以容纳应用程序的live-set，</li>
+<li>在GC运行期间堆中有足够的空间分配给应用程序。</li>
+</ol>
+<p>需要多少空间取决于应用程序的分配率和实时设置大小。一般来说，你给ZGC的内存越多越好。但同时，浪费内存也是不可取的，所以这一切都是为了在内存使用和GC需要运行的频率之间找到平衡。</p>
+<h2 id="设置并发GC线程数"><a href="#设置并发GC线程数" class="headerlink" title="设置并发GC线程数"></a>设置并发GC线程数</h2><p>第二个调优选项是设置并发 GC 线程的数量 (<code>-XX:ConcGCThreads=&lt;number&gt;</code>)。 ZGC 有启发式自动选择这个数字。这种启发式通常效果很好，但根据应用程序的特性，这可能需要进行调整。这个选项本质上决定了应该给 GC 多少 CPU 时间。给它太多，GC 会从应用程序中窃取太多 CPU 时间。给它太少，应用程序可能会比 GC 收集垃圾的速度更快地收集垃圾。</p>
+<blockquote>
+<p>一般来说，如果低延迟（即低应用程序响应时间）对您的应用程序很重要，那么永远不要过度配置您的系统。理想情况下，您的系统的 CPU 利用率不应超过 70%。</p>
+</blockquote>
+<h2 id="将未使用的内存归还给操作系统"><a href="#将未使用的内存归还给操作系统" class="headerlink" title="将未使用的内存归还给操作系统"></a>将未使用的内存归还给操作系统</h2><p>默认情况下，ZGC 不提交未使用的内存给操作系统。这对于关注内存占用的应用程序和环境很有用。可以使用 <code>-XX:-ZUncommit</code>禁用此功能。此外，内存不会未提交，因此堆大小会缩小到最小堆大小 (-Xms) 以下。这意味着如果最小堆大小 (-Xms) 配置为等于最大堆大小 (-Xmx)，则此功能将被隐式禁用。<br>可以使用<code>-XX:ZUncommitDelay=&lt;senconds&gt;</code>（默认为 300 秒）配置取消提交延迟。此延迟指定内存在有资格取消提交之前应该被使用多长时间。</p>
+<blockquote>
+<p>在 Linux 上，取消提交未使用的内存需要具有 FALLOC_FL_PUNCH_HOLE 支持的 fallocate(2)，它首先出现在内核版本 3.5（用于 tmpfs）和 4.3（用于 Hugetlbfs）中。</p>
+</blockquote>
+<h2 id="在Linux上使用Large-Pages"><a href="#在Linux上使用Large-Pages" class="headerlink" title="在Linux上使用Large Pages"></a>在Linux上使用Large Pages</h2><p>将 ZGC 配置为使用大页面通常会产生更好的性能（在吞吐量、延迟和启动时间方面）并且没有真正的缺点，只是设置稍微复杂一些。设置过程通常需要 root 权限，这就是默认情况下不启用它的原因。</p>
+<p>在 Linux&#x2F;x86 上，large pages（也称为“huge pages”）的大小为 2MB。</p>
+<p>假设您想要一个 16G 的 Java 堆。这意味着您需要 16G &#x2F; 2M &#x3D; 8192 个大页面。<br>首先为大页面池分配至少 16G（8192 页）的内存。 “至少”部分很重要，因为在 JVM 中启用大页面意味着不仅 GC 将尝试将这些用于 Java 堆，而且 JVM 的其他部分将尝试将它们用于各种内部数据结构（代码堆、标记位图等）。因此，在此示例中，我们将保留 9216 个页面 (18G) 以允许 2G 的非 Java 堆分配以使用大页面。<br>配置系统的大页面池，使其拥有所需数量的页面（需要root权限）：</p>
+<pre><code>$ echo 9216 &gt; /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+</code></pre>
+<p>请注意，如果内核找不到足够的空闲大页面来满足请求，则不能保证上述命令会成功。另请注意，内核处理请求可能需要一些时间。在继续之前，请检查分配给池的大页面数量以确保请求成功并已完成。</p>
+<pre><code>$ cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+9216
+</code></pre>
+<blockquote>
+<p>如果您使用的是<code>Linux kernel &gt;= 4.14</code>内核，则可以跳过下一步（您挂载 Hugetlbfs 文件系统的位置）。否则，如果您使用的是较旧的内核，则 ZGC 需要通过 Hugetlbfs 文件系统访问大页面。<br>挂载一个hugetlbfs 文件系统（需要root 权限）并使运行JVM 的用户可以访问它（在本例中，我们假设该用户的uid 为123）。</p>
+</blockquote>
+<pre><code>$ mkdir /hugepages
+$ mount -t hugetlbfs -o uid=123 nodev /hugepages 
+</code></pre>
+<p>现在使用<code>-XX:+UseLargePages</code>选项启动 JVM。</p>
+<pre><code>$ java -XX:+UseZGC -Xms16G -Xmx16G -XX:+UseLargePages ...
+</code></pre>
+<p>如果有多个可访问的 Hugetlbfs 文件系统可用，那么（并且只有这样）您还必须使用<code>-XX:AllocateHeapAt</code>来指定要使用的文件系统的路径。例如，假设安装了多个可访问的hugetlbfs 文件系统，但您特别希望使用它的文件系统安装在&#x2F;hugepages 上，然后使用以下选项。</p>
+<pre><code>$ java -XX:+UseZGC -Xms16G -Xmx16G -XX:+UseLargePages -XX:AllocateHeapAt=/hugepages ...
+</code></pre>
+<blockquote>
+<p>除非采取必要的措施，否则巨页池的配置和 Hugetlbfs 文件系统的安装在重新启动后会丢失。</p>
+</blockquote>
+<h2 id="在Linux上启用Transparent-Huge-Pages"><a href="#在Linux上启用Transparent-Huge-Pages" class="headerlink" title="在Linux上启用Transparent Huge Pages"></a>在Linux上启用Transparent Huge Pages</h2><p>使用显式大页面（如上所述）的替代方法是使用透明大页面。对于延迟敏感的应用程序，通常不推荐使用透明大页面，因为它往往会导致不必要的延迟峰值。但是，可能值得尝试一下，看看您的工作负载是否&#x2F;如何受到它的影响。但请注意，您的里程可能会有所不同。</p>
+<blockquote>
+<p>在 Linux 上，在启用透明大页面的情况下使用 ZGC 需要<code>kernel &gt;= 4.7</code>。</p>
+</blockquote>
+<p>使用以下选项在 VM 中启用透明大页面：</p>
+<pre><code>-XX:+UseLargePages -XX:+UseTransparentHugePages
+</code></pre>
+<p>这些选项告诉 JVM 为其映射的内存发出 madvise(…, MADV_HUGEPAGE) 调用，这在 madvise 模式下使用透明大页面时很有用。<br>要启用透明大页面，您还需要通过启用 madvise 模式来配置内核。</p>
+<pre><code>$ echo madvise &gt; /sys/kernel/mm/transparent_hugepage/enabled
+
+$ echo advise &gt; /sys/kernel/mm/transparent_hugepage/shmem_enabled
+</code></pre>
+<h2 id="启用NUMA支持"><a href="#启用NUMA支持" class="headerlink" title="启用NUMA支持"></a>启用NUMA支持</h2><p>ZGC 具有 NUMA 支持，这意味着它会尽量将 Java 堆分配定向到 NUMA 本地内存。<code>默认启用此功能</code>。但是，如果 JVM 检测到它绑定到系统中的 CPU 子集，它将自动禁用。通常，您无需担心此设置，但如果您想明确覆盖 JVM 的决定，您可以使用<code>-XX:+UseNUMA</code>或<code>-XX:-UseNUMA</code>选项来实现。</p>
+<p>在 NUMA 机器（例如多路 x86 机器）上运行时，启用 NUMA 支持通常会显着提升性能。</p>
+<h2 id="启用GC-Logging"><a href="#启用GC-Logging" class="headerlink" title="启用GC Logging"></a>启用GC Logging</h2><p>使用以下命令行选项启用 GC 日志记录：</p>
+<pre><code>-Xlog:&lt;tag set&gt;,[&lt;tag set&gt;, ...]:&lt;log file&gt;
+</code></pre>
+<p>有关此选项的一般信息&#x2F;帮助：</p>
+<pre><code>-Xlog:help
+</code></pre>
+<p>要启用基本日志记录（每个 GC 输出一行）：</p>
+<pre><code>-Xlog:gc:gc.log
+</code></pre>
+<p>要启用对调优&#x2F;性能分析有用的 GC 日志记录：</p>
+<pre><code>-Xlog:gc*:gc.log
+</code></pre>
+<p>其中 gc* 表示记录包含 gc 标记的所有标记组合，而 :gc.log 表示将日志写入名为 gc.log 的文件。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2021/07/28/zgc/" data-id="clu1a7ilp000fx7g0ashl1muh" data-title="一文读懂ZGC" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/30/vitess/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          一文读懂Vitess
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/21/Storage/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">一文读懂分布式存储</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/03/21/aws/">AWS 服务介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/git-svn/">git-svn</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/21/Storage/">一文读懂分布式存储</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 牛古<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一文读懂分布式存储 | 牛古说</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="分布式理论分布式系统的特性 可拓展 低成本 高性能 易用性。提供易用的对外接口，具备完善的监控、运维工具，并方便和其他系统集成。  分布式存储的数据需求可以分为三类：  非结构化数据：包括所有格式的办公文档、文本、图片、图像、音频和视频信息。 结构化数据：一般存储在关系数据库中，可以用二维关系表结构来表示。结构化数据的模式（Schema，包括属性、数据类型以及数据之间的关系）和内容是分开的，数据的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文读懂分布式存储">
+<meta property="og:url" content="https://ljun51.github.io/2021/07/21/Storage/index.html">
+<meta property="og:site_name" content="牛古说">
+<meta property="og:description" content="分布式理论分布式系统的特性 可拓展 低成本 高性能 易用性。提供易用的对外接口，具备完善的监控、运维工具，并方便和其他系统集成。  分布式存储的数据需求可以分为三类：  非结构化数据：包括所有格式的办公文档、文本、图片、图像、音频和视频信息。 结构化数据：一般存储在关系数据库中，可以用二维关系表结构来表示。结构化数据的模式（Schema，包括属性、数据类型以及数据之间的关系）和内容是分开的，数据的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_2">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_7">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_10">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_11">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_12">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_45">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_46">
+<meta property="og:image" content="https://res.weread.qq.com/wrepub/epub_621735_47">
+<meta property="article:published_time" content="2021-07-21T04:04:12.000Z">
+<meta property="article:modified_time" content="2024-03-21T13:33:53.016Z">
+<meta property="article:author" content="牛古">
+<meta property="article:tag" content="存储">
+<meta property="article:tag" content="分布式存储">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://res.weread.qq.com/wrepub/epub_621735_2">
+  
+    <link rel="alternate" href="/atom.xml" title="牛古说" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">牛古说</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">不动笔墨不读书。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ljun51.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Storage" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/21/Storage/" class="article-date">
+  <time class="dt-published" datetime="2021-07-21T04:04:12.000Z" itemprop="datePublished">2021-07-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一文读懂分布式存储
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="分布式理论"><a href="#分布式理论" class="headerlink" title="分布式理论"></a>分布式理论</h1><h2 id="分布式系统的特性"><a href="#分布式系统的特性" class="headerlink" title="分布式系统的特性"></a>分布式系统的特性</h2><ul>
+<li>可拓展</li>
+<li>低成本</li>
+<li>高性能</li>
+<li>易用性。提供易用的对外接口，具备完善的监控、运维工具，并方便和其他系统集成。</li>
+</ul>
+<p>分布式存储的数据需求可以分为三类：</p>
+<ul>
+<li>非结构化数据：包括所有格式的办公文档、文本、图片、图像、音频和视频信息。</li>
+<li>结构化数据：一般存储在关系数据库中，可以用二维关系表结构来表示。结构化数据的模式（Schema，包括属性、数据类型以及数据之间的关系）和内容是分开的，数据的模式需要预先定义。</li>
+<li>半结构化数据：介于非结构化数据和结构化数据之间，HTML文档就数据半结构化数据。它一般是自描述的，与结构化数据最大的区别在于，半结构化数据的模式结构和内容混在一起，没有明显的区分，也不需要预先定义数据的模式结构。</li>
+</ul>
+<h2 id="分布式存储系统"><a href="#分布式存储系统" class="headerlink" title="分布式存储系统"></a>分布式存储系统</h2><h3 id="分布式文件系统"><a href="#分布式文件系统" class="headerlink" title="分布式文件系统"></a>分布式文件系统</h3><p>互联网应用需要存储大量的图片、照片、视频等非结构化数据对象，这类数据以对象的形式组织，对象之间没有关联，这样的数据一般成为Blob（Binary Large Object，二进制大对象）数据。</p>
+<p>分布式文件系统用于存储Blob对象，典型的系统有Facebook Haystack以及Taobao File System（TFS）。另外，分布式文件系统常作为分布式表格系统、分布式数据库的底层存储，如谷歌的GFS（Google File System）可以作为分布式表格系统Google Bigtable的底层存储，Amazon的EBS（Elastic Block Store）系统可以作为分布式数据库Amazon RDS的底层存储。</p>
+<p>总体上看，分布式文件系统存储三种类型的数据：Blob对象、定长块、大文件。在系统实现层面，分布式文件系统内部按照数据块（chunk）来组织数据，每个数据块的大小大致相同，每个数据块可以包含多个Blob对象或者定长块，一个大文件也可以拆分为多个数据块。分布式文件系统将这些数据块分散到存储集群，处理数据复制、一致性、负载均衡、容错等分布式系统难题，并将用户对Blob对象、定长块以及大文件的操作映射为对底层数据块的操作。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_2" alt="数据块与Blob对象、定长块、大文件之间的关系"></p>
+<h3 id="分布式键值系统"><a href="#分布式键值系统" class="headerlink" title="分布式键值系统"></a>分布式键值系统</h3><p>分布式键值系统用于存储关系简单的半结构化数据，它只提供基于主键的CRUD（Create&#x2F;Read&#x2F;Update&#x2F;Delete）功能。</p>
+<p>典型的系统有Amazon Dynamo以及Taobao Tair。从数据结构的角度看，分布式键值系统与传统的哈希表比较类似，不同的是，分布式键值系统支持将数据分布到集群中的多个存储节点。分布式键值系统是分布式表格系统的一种简化实现，一般用作缓存，比如淘宝Tair以及Memcache。一致性哈希是分布式键值系统中常用的数据分布技术，因其被Amazon DynamoDB系统使用而变得相当有名。</p>
+<h3 id="分布式表格系统"><a href="#分布式表格系统" class="headerlink" title="分布式表格系统"></a>分布式表格系统</h3><p>分布式表格系统用于存储关系较为复杂的半结构化数据，与分布式键值系统相比，分布式表格系统不仅仅支持简单的CRUD操作，而且支持扫描某个主键范围。分布式表格系统以表格为单位组织数据，每个表格包括很多行，通过主键标示一行，支持根据主键的CRUD功能以及范围查找功能。</p>
+<p>分布式表格系统借鉴了很多关系数据库的技术，例如支持某种程度上的事务，比如单行事务，某个实体组（Entity Group，一个用户下的所有数据往往构成实体组）下的多行事务。典型的系统包括Google Bigtable以及Megastore，Microsoft Azure Table Storage，Amazon DynamoDB等。与分布式数据库相比，分布式表格系统主要支持针对单张表格的操作，不支持一些特别复杂的操作，比如多表关联、多表连接、嵌套子查询；另外，在分布式表格系统中，同一个表格的多个数据行也不要求包含相同类型的列，适合半结构化数据。分布式表格系统是一个很好的权衡，这类系统可以做到超大规模，而且支持较多功能，但实现往往比较复杂，而且有一定的使用门槛。</p>
+<h3 id="分布式数据库"><a href="#分布式数据库" class="headerlink" title="分布式数据库"></a>分布式数据库</h3><p>分布式数据库一般是从单机关系数据库扩展而来，用于存储结构化数据。分布式数据库采用二维表组织数据，提供SQL关系查询语言，支持多表关联、嵌套子查询等复杂操作，并提供事务以及并发控制。</p>
+<p>典型的系统包括MySQL数据分片（MySQL Sharding）集群，Amazon RDS以及Microsoft SQL Azure。分布式数据库支持的功能最为丰富，符合用户使用习惯，但可扩展性往往受到限制。当然，这一点并不是绝对的。Google Spanner系统是一个支持多数据中心的分布式数据库，它不仅支持丰富的关系数据库功能，还能扩展到多个数据中心的成千上万台机器。除此之外，阿里巴巴OceanBase系统也是一个支持自动扩展的分布式关系数据库。</p>
+<p>关系数据库是目前为止最为成熟的存储技术，它的功能极其丰富，产生了商业的关系数据库软件（例如Oracle、Microsoft SQL Server、IBM DB2、MySQL）以及上层的工具及应用软件生态链。然而，关系数据库在可以扩展上面临着巨大挑战。传统关系数据库的事务以及二维关系模型很难高效的扩展到多个存储节点上，另外，关系数据库对于要求高并发的应用在性能上优化空间较大。</p>
+<h2 id="基础硬件对存储系统的影响"><a href="#基础硬件对存储系统的影响" class="headerlink" title="基础硬件对存储系统的影响"></a>基础硬件对存储系统的影响</h2><p><img src="https://res.weread.qq.com/wrepub/epub_621735_7" alt="常用硬件性能参数"></p>
+<h2 id="单机存储引擎"><a href="#单机存储引擎" class="headerlink" title="单机存储引擎"></a>单机存储引擎</h2><p>存储引擎是存储系统的发动机，直接决定了存储系统能够提供的性能和功能。存储系统的基本功能包括：增、删、读、改，其中，读取操作又分为随机读取和顺序扫描。哈希存储引擎是哈希表的持久化实现，支持增、删、改，以及随机读取，但不支持顺序扫描，对应的存储系统为键值（Key-Value）存储系统；B树（B-Tree）存储引擎是B树的持久化实现，不仅支持单条记录的增、删、读、改操作，还支持顺序扫描，对应的存储系统是关系数据库。当然，键值系统也可以通过B树存储引擎实现；LSM树（Log-Structured Merge Tree）存储引擎和B树存储引擎一样，支持增、删、改、随机读取以及顺序扫描。它通过批量转储技术规避磁盘随机写入问题，广泛应用于互联网的后台存储系统，例如Google Bigtable、Google LevelDB以及Facebook开源的Cassandra系统。</p>
+<h3 id="哈希存储引擎"><a href="#哈希存储引擎" class="headerlink" title="哈希存储引擎"></a>哈希存储引擎</h3><p>Bitcask是一个基于哈希表结构的键值存储系统，它仅支持追加操作（Appendonly）。在Bitcask系统中，每个文件有一定的大小限制，当文件增加到相应大小是，就会产生一个新的文件，老的文件只读不写。在任意时刻，只有一个文件是可写的，用于数据追加，称为活跃数据文件（active data file）。而其他已经达到大小限制的文件，称为老数据文件（older data file）。</p>
+<h4 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h4><p>Bitcask数据文件中的数据是一条一条的写入操作，每一条记录的数据项分别为主键（key）、value内容（value）、主键长度（key_sz）、value长度（value_sz）、时间戳（timestamp）、crc校验值。数据删除操作也不会删除旧的条目，而是将value设定为一个特殊的值用作标识。内存中采用基于哈希表的索引数据结构，哈希表的作用是通过主键快速的定位到value的位置。哈希表结构中的每一项包括了三个用于定位数据的信息，分别是文件编号（file id），value在文件中的位置（value_pos），value长度（value_sz），通过读取file_id对应文件的value_pos开始的value_sz个字节，就得到了最终的value值。写入是首先将Key-Value记录追加到活跃数据文件的末尾，接着更新内存哈希表，接着更新哈希表，因此，每个写操作总共需要进行一次顺序的磁盘写入和一次内存操作。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_10" alt="Bitcask数据结构"></p>
+<p>Bitcask在内存中存储了主键和value的索引信息，磁盘文件中存储了主键和value的实际内容。系统基于一个假设，value的长度远大于主键的长度。假如value的平均长度为1KB，每条记录在内存中的索引信息为32字节，那么，磁盘内存比为32:1。这样，32GB内存索引的数据量为32GB*32&#x3D;1TB。</p>
+<h4 id="定期合并"><a href="#定期合并" class="headerlink" title="定期合并"></a>定期合并</h4><p>Bitcask系统中的记录删除或者更新后，原来的记录成为垃圾数据。Bitcask需要定期执行合并（Compaction）操作已实现垃圾回收。</p>
+<h4 id="快速恢复"><a href="#快速恢复" class="headerlink" title="快速恢复"></a>快速恢复</h4><p>Bitcask系统中的哈希索引存储在内存中，如果不做额外的工作，服务器断电重启重建哈希表需要扫描一遍数据文件，如果数据文件很大，这是一个非常耗时的过程。Bitcask通过索引文件（hint file）来提高重建哈希表的速度。</p>
+<p>简单来说，索引文件就是将内存中的哈希索引表转储到磁盘生成的结果文件。Bitcask对老数据文件进行合并操作时，会产生新的数据文件，这个过程中还会产生一个索引文件，这个索引文件记录每一条记录的哈希索引信息。重建索引表时，仅仅需要将索引文件中的数据一行行读取并重建即可，减少重启后的恢复时间。</p>
+<h3 id="B树存储引擎"><a href="#B树存储引擎" class="headerlink" title="B树存储引擎"></a>B树存储引擎</h3><p>相比哈希存储引擎，B树存储引擎不仅支持随机读取，还支持范围扫描。关系数据库中通过索引访问数据，在MySQL InnoDB中，有一个称为聚集索引的特殊索引，行的数据存于其中，组织成B+树数据结构。</p>
+<h4 id="数据结构-1"><a href="#数据结构-1" class="headerlink" title="数据结构"></a>数据结构</h4><p>MySQL InnoDB按照页面（Page）来组织数据，每个页面对应B+树的一个节点。其中，叶子节点保存每行的完整数据，非叶子节点保存索引信息。数据在每个节点中有序存储，数据库查询是需要从根节点开始二分查找直到叶子节点，每次读取一个节点，如果对应的页面不在内存中，需要从磁盘中读取并缓存起来。B+树的根节点是常驻内存的，因此，B+树一次检索最多需要h-1次磁盘IO，复杂度为O(h)&#x3D;O(logdN)（N为元素个数，d为每个节点的出度，h为B+树高度）。修改操作首先需要记录提交日志，接着修改内存中的B+树。如果内存中被修改过的页面超过一定的比例，后台线程会将这些页面刷到磁盘中持久化。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_11" alt="B+树存储引擎"></p>
+<h4 id="缓冲区管理"><a href="#缓冲区管理" class="headerlink" title="缓冲区管理"></a>缓冲区管理</h4><p>缓冲区管理器负责将可用的内存划分成缓冲区，缓冲区是与页面同等大小的区域，磁盘块的内容可以传送到缓冲区中。缓冲区管理器的关键在于替换策略，即选择哪些页面淘汰出缓冲池。常见的算法有以下两种。</p>
+<h5 id="LRU（Least-Recently-Used）"><a href="#LRU（Least-Recently-Used）" class="headerlink" title="LRU（Least Recently Used）"></a>LRU（Least Recently Used）</h5><p>LRU算法淘汰最近最少使用的块。这种算法要求缓冲区管理器按照页面最后一次被访问的时间组成一个链表，每次淘汰链表尾部的页面。</p>
+<p>LRU局限性：假如某一个查询做了一个全表扫描，将导致缓冲池中的大量页面（可能包含很多很快被访问的热点页面）被替换，从而污染缓冲池。</p>
+<h5 id="LIRS（Low-Inter-reference-Recency-Set）"><a href="#LIRS（Low-Inter-reference-Recency-Set）" class="headerlink" title="LIRS（Low Inter-reference Recency Set）"></a>LIRS（Low Inter-reference Recency Set）</h5><p>LIRS使用IRR（Inter-Reference Recency）来表示数据块访问历史信息，IRR表示最近连续访问同一个数据块之间访问其他不同数据块非重复个数。</p>
+<p>现代数据库一般采用LIRS算法，将缓冲池分为两级，数据首页进入第一级，如果数据在较短的时间内被访问2次或以上，则成为热点数据进入第二级，每一级内部还是采用LRU替换算法。Oracle数据库中的Touch Count算法和MySQL InnoDB中的替换算法都采用了类似的分级思想。以MySQL InnoDB为例，InnoDB内部的LRU链表分为两部分：新子链表（new sublist）和老子链表（old sublist），默认情况下，前者占5&#x2F;8，后者占3&#x2F;8。页面首先插入到老子链表，InnoDB要求页面在老子链表停留时间超过一定值，比如1秒，才有可能被转移到新子链表。当出现全表扫描时，InnoDB将数据页面载入到老子链表，由于数据页面在老子链表中的停留时间不够，不会被转移到新子链表中，这就避免了新子链表中的页面被替换出去的情况。</p>
+<h3 id="LSM树存储引擎"><a href="#LSM树存储引擎" class="headerlink" title="LSM树存储引擎"></a>LSM树存储引擎</h3><p>LSM树（Log Structured Merge Tree）的思想非常朴素，就是将对数据的修改增量保持在内存中，达到指定大小限制后将这些修改操作批量写入磁盘，读取时需要合并磁盘中的历史数据和内存中最近的修改操作。LSM树的优势在于有效地规避了磁盘随机写入问题，但读取时可能需要访问较多的磁盘文件。下面介绍LevelDB中的LSM树存储引擎。</p>
+<h4 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h4><p>LevelDB存储引擎主要包括：内存中的MemTable和不可变MemTable（Immutable MemTable，也称为Frozen MemTable）以及磁盘上的几种主要文件：当前（Current）文件、清单（Manifest）文件、操作日志（Commit Log）文件以及SSTable文件。当应用写入一条记录时，LevelDB会首先将修改操作写入到操作日志文件，成功后再将修改操作应用到MemTable，这样就完成了写入操作。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_12" alt="LevelDB存储引擎"></p>
+<p>当MemTable占用的内存达到一个上限值后，需要将内存的数据转储到外存文件中。LevelDB会将原先的MemTable冻结成为不可变MemTable，并生成一个新的MemTable。新到来的数据被记入新的操作日志文件和新生成的MemTable中。顾名思义，不可变MemTable的内容是不可更改的，只能读取不能写入或者删除。LevelDB后台线程会将不可变MemTable的数据排序后转储到磁盘，形成一个新的SSTable文件，这个操作称为Compaction。SSTable文件是内存中的数据不断进行Compaction操作后形成的，且SSTable的所有文件是一种层级结构，第0层为Level0，第1层为Level1，以此类推。</p>
+<p>SSTable中的文件是按照记录的主键排序的，每个文件有最小的主键和最大的主键。LevelDB的清单文件记录了这些元数据，包括属于哪个层级、文件名称、最小主键和最大主键。当前文件记录了当前使用的清单文件名。在LevelDB的运行过程中，随着Compaction的进行，SSTable文件会发生变化，新的文件会产生，老的文件被废弃，此时往往会生成新的清单文件来记载这种变化，而当前文件则用来指出哪个清单文件才是当前有效的。</p>
+<p>直观上，LevelDB每次查询都需要从老到新读取每个层级的SSTable文件以及内存中的MemTable。LevelDB做了一个优化，由于LevelDB对外只支持随机读取单条记录，查询时LevelDB首先会去查看内存中的MemTable，如果MemTable包含记录的主键及其对应的值，则返回记录即可；如果MemTable没有读到该主键，则接下来到同样处于内存中的不可变Memtable中去读取；类似地，如果还是没有读到，只能依次从新到老读取磁盘中的SSTable文件。</p>
+<h4 id="合并"><a href="#合并" class="headerlink" title="合并"></a>合并</h4><p>LevelDB写入操作很简单，但是读取操作比较复杂，需要在内存以及各个层级文件中按照从新到老依次查找，代价很高。为了加快读取速度，LevelDB内部会执行Compaction操作来对已有的记录进行整理压缩，从而删除一些不再有效的记录，减少数据规模和文件数量。</p>
+<p>LevelDB的Compaction操作分为两种：minor compaction和major compaction。Minor compaction是指当内存中的MemTable大小到了一定值时，将内存数据转储到SSTable文件中。每个层级下有多个SSTable，当某个层级下的SSTable文件数目超过一定设置值后，levelDB会从这个层级中选择SSTable文件，将其和高一层级的SSTable文件合并，这就是major compaction。major compaction相当于执行一次多路归并：按照主键顺序依次迭代出所有SSTable文件中的记录，如果没有保存价值，则直接抛弃；否则，将其写入到新生成的SSTable文件中。</p>
+<h2 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h2><p>如果说存储引擎相当于存储系统的发动机，那么，数据模型就是存储系统的外壳。存储系统的数据模型主要包括三类：文件、关系以及随着NoSQL技术流行起来的键值模型。传统的文件系统和关系数据库系统分别采用文件和关系模型。关系模型描述能力强，产业链完整，是存储系统的业界标准。然而，随着应用在可扩展性、高并发以及性能上提出越来越高的要求，大而全的关系数据库有时显得力不从心，因此，产生了一些新的数据模型，比如键值模型，关系弱化的表格模型，等等。</p>
+<h3 id="文件模型"><a href="#文件模型" class="headerlink" title="文件模型"></a>文件模型</h3><p>文件系统以目录树的形式组织文件，以类UNIX操作系统为例，根目录为&#x2F;，包含&#x2F;usr、&#x2F;bin、&#x2F;home等子目录，每个子目录又包含其他子目录或者文件。文件系统的操作涉及目录以及文件，例如，打开&#x2F;关闭文件、读写文件、遍历目录、设置文件属性等。POSIX（Portable Operating System Interface）是应用程序访问文件系统的API标准，它定义了文件系统存储接口及操作集。</p>
+<p>POSIX主要接口如下所示。</p>
+<ul>
+<li>Open&#x2F;close：打开&#x2F;关闭一个文件，获取文件描述符；</li>
+<li>Read&#x2F;write：读取一个文件或者往文件中写入数据；</li>
+<li>Opendir&#x2F;closedir：打开或者关闭一个目录；</li>
+<li>Readdir：遍历目录。</li>
+</ul>
+<p>POSIX标准不仅定义了文件操作接口，而且还定义了读写操作语义。例如，POSIX标准要求读写并发时能够保证操作的原子性，即读操作要么读到所有结果，要么什么也读不到；另外，要求读操作能够读到之前所有写操作的结果。POSIX标准适合单机文件系统，在分布式文件系统中，出于性能考虑，一般不会完全遵守这个标准。NFS（Network File System）文件系统允许客户端缓存文件数据，多个客户端并发修改同一个文件时可能出现不一致的情况。</p>
+<p>对象模型与文件模型比较类似，用于存储图片、视频、文档等二进制数据块，典型的系统包括AmazonSimple Storage（S3），Taobao File System（TFS）。这些系统弱化了目录树的概念，Amazon S3只支持一级目录，不支持子目录，Taobao TFS甚至不支持目录结构。与文件模型不同的是，对象模型要求对象一次性写入到系统，只能删除整个对象，不允许修改其中某个部分。</p>
+<h3 id="关系模型"><a href="#关系模型" class="headerlink" title="关系模型"></a>关系模型</h3><p>每个关系是一个表格，由多个元组（行）构成，而每个元组又包含多个属性（列）。关系名、属性名以及属性类型称作该关系的模式（schema）。例如，Movie关系的模式为Movie（title，year，length），其中，title、year、length是属性，假设它们的类型分别为字符串、整数、整数。数据库语言SQL用于描述查询以及修改操作。数据库修改包含三条命令：INSERT、DELETE以及UPDATE，查询通常通过select-from-where语句来表达，它具有图2-9所示的一般形式。Select查询语句计算过程大致如下（不考虑查询优化）：</p>
+<ol>
+<li>取FROM子句中列出的各个关系的元组的所有可能的组合。</li>
+<li>将不符合WHERE子句中给出的条件的元组去掉。</li>
+<li>如果有GROUP BY子句，则将剩下的元组按GROUP BY子句中给出的属性的值分组。</li>
+<li>如果有HAVING子句，则按照HAVING子句中给出的条件检查每一个组，去掉不符合条件的组。</li>
+<li>按照SELECT子句的说明，对于指定的属性和属性上的聚集（例如求和）计算出结果元组。</li>
+<li>按照ORDER BY子句中的属性列的值对结果元组进行排序。</li>
+</ol>
+<p>SQL查询还有一个强大的特性是允许在WHERE、FROM和HAVING子句中使用子查询，子查询又是一个完整的select-from-where语句。</p>
+<p>另外，SQL还包括两个重要的特性：索引以及事务。其中，数据库索引用于减少SQL执行时扫描的数据量，提高读取性能；数据库事务则规定了各个数据库操作的语义，保证了多个操作并发执行时的ACID特性。</p>
+<h3 id="键值模型"><a href="#键值模型" class="headerlink" title="键值模型"></a>键值模型</h3><p>大量的NoSQL系统采用了键值模型（也称为Key-Value模型），每行记录由主键和值两个部分组成，支持基于主键的如下操作：</p>
+<ul>
+<li>Put：保存一个Key-Value对。</li>
+<li>Get：读取一个Key-Value对。</li>
+<li>Delete：删除一个Key-Value对。</li>
+</ul>
+<p>Key-Value模型过于简单，支持的应用场景有限，NoSQL系统中使用比较广泛的模型是表格模型。表格模型弱化了关系模型中的多表关联，支持基于单表的简单操作，典型的系统是Google Bigtable以及其开源Java实现HBase。表格模型除了支持简单的基于主键的操作，还支持范围扫描，另外，也支持基于列的操作。主要操作如下：</p>
+<ul>
+<li>Insert：插入一行数据，每行包括若干列；</li>
+<li>Delete：删除一行数据；</li>
+<li>Update：更新整行或者其中的某些列的数据；</li>
+<li>Get：读取整行或者其中某些列数据；</li>
+<li>Scan：扫描一段范围的数据，根据主键确定扫描的范围，支持扫描部分列，支持按列过滤、排序、分组等。</li>
+</ul>
+<p>与关系模型不同的是，表格模型一般不支持多表关联操作，Bigtable这样的系统也不支持二级索引，事务操作支持也比较弱，各个系统支持的功能差异较大，没有统一的标准。另外，表格模型往往还支持无模式（schema-less）特性，也就是说，不需要预先定义每行包括哪些列以及每个列的类型，多行之间允许包含不同列。</p>
+<h3 id="SQL与NoSQL"><a href="#SQL与NoSQL" class="headerlink" title="SQL与NoSQL"></a>SQL与NoSQL</h3><p>关系数据库在海量数据场景面临如下挑战：</p>
+<ul>
+<li><code>事务</code> 关系模型要求多个SQL操作满足ACID特性，所有的SQL操作要么全部成功，要么全部失败。在分布式系统中，如果多个操作属于不同的服务器，保证它们的原子性需要用到两阶段提交协议，而这个协议的性能很低，且不能容忍服务器故障，很难应用在海量数据场景。</li>
+<li><code>联表</code> 传统的数据库设计时需要满足范式要求，例如，第三范式要求在一个关系中不能出现在其他关系中已包含的非主键信息。假设存在一个部门信息表，其中每个部门有部门编号、部门名称、部门简介等信息，那么在员工信息表中列出部门编号后就不能加入部门名称、部门简介等部门有关的信息，否则就会有大量的数据冗余。而在海量数据的场景，为了避免数据库多表关联操作，往往会使用数据冗余等违反数据库范式的手段。实践表明，这些手段带来的收益远高于成本。</li>
+<li><code>性能</code> 关系数据库采用B树存储引擎，更新操作性能不如LSM树这样的存储引擎。另外，如果只有基于主键的增、删、查、改操作，关系数据库的性能也不如专门定制的Key-Value存储系统。</li>
+</ul>
+<p>随着数据规模越来越大，可扩展性以及性能提升可以带来越来越明显的收益，而NoSQL系统要么可扩展性好，要么在特定的应用场景性能很高，广泛应用于互联网业务中。然而，NoSQL系统也面临如下问题：</p>
+<ul>
+<li><code>缺少统一标准</code> 经过几十年的发展，关系数据库已经形成了SQL语言这样的业界标准，并拥有完整的生态链。然而，各个NoSQL系统使用方法不同，切换成本高，很难通用。</li>
+<li><code>使用以及运维复杂</code> NoSQL系统无论是选型，还是使用方式，都有很大的学问，往往需要理解系统的实现，另外，缺乏专业的运维工具和运维人员。而关系数据库具有完整的生态链和丰富的运维工具，也有大量经验丰富的运维人员。</li>
+</ul>
+<p>总而言之，关系数据库很通用，是业界标准，但是在一些特定的应用场景存在可扩展性和性能的问题，NoSQL系统也有一定的用武之地。从技术学习的角度看，不必纠结SQL与NoSQL的区别，而是借鉴二者各自不同的优势，着重理解关系数据库的原理以及NoSQL系统的高可扩展性。</p>
+<h2 id="事务与并发控制"><a href="#事务与并发控制" class="headerlink" title="事务与并发控制"></a>事务与并发控制</h2><p>多个事务并发执行时，如果它们的执行结果和按照某种顺序一个接着一个串行执行的效果等同，这种隔离级别称为可串行化。可串行化是比较理想的情况，商业数据库为了性能考虑，往往会定义多种隔离级别。事务的并发控制一般通过锁机制来实现，锁可以有不同的粒度，可以锁住行，也可以锁住数据块甚至锁住整个表格。由于互联网业务中读事务的比例往往远远高于写事务，为了提高读事务性能，可以采用写时复制（Copy-On-Write，COW）或者多版本并发控制（Multi-Version ConcurrencyControl，MVCC）技术来避免写事务阻塞读事务。</p>
+<h3 id="原子性（Atomicity）"><a href="#原子性（Atomicity）" class="headerlink" title="原子性（Atomicity）"></a>原子性（Atomicity）</h3><p>事务的原子性体现在事务对数据的修改，即要么全都执行，要么全都不执行，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态。</p>
+<h3 id="一致性（Consistency）"><a href="#一致性（Consistency）" class="headerlink" title="一致性（Consistency）"></a>一致性（Consistency）</h3><p>在事务开始之前和事务结束以后，数据库的完整性没有被破坏。写入的数据必须完全符合所有的预设约束、触发器、级联回滚等。</p>
+<h3 id="隔离性（Isolation）"><a href="#隔离性（Isolation）" class="headerlink" title="隔离性（Isolation）"></a>隔离性（Isolation）</h3><p>数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。事务隔离分为不同级别，包括位提交读、提交读、可重复读和串行化。</p>
+<h3 id="持久性（Durability）"><a href="#持久性（Durability）" class="headerlink" title="持久性（Durability）"></a>持久性（Durability）</h3><p>事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。</p>
+<h2 id="事务隔离（Transaction-Isolation）级别"><a href="#事务隔离（Transaction-Isolation）级别" class="headerlink" title="事务隔离（Transaction Isolation）级别"></a>事务隔离（Transaction Isolation）级别</h2><p>隔离性是手段，通过事务的隔离级别，解决数据在高并发下所产生的问题：</p>
+<ul>
+<li>脏读（Dirty Read）：事务A读取了事务B未提交的数据，并在这个基础上又做了其他操作。</li>
+<li>不可重复读（Unrepeatable Read）：事务A读取了事务 B 已提交的更改数据。</li>
+<li>幻读（Phantom Read）：事务A读取了事务B已提交的新增数据。</li>
+</ul>
+<h3 id="未提交读"><a href="#未提交读" class="headerlink" title="未提交读"></a>未提交读</h3><p>未提交读（READ UNCOMMITTED）是最低的隔离级别。允许「脏读」（dirty reads），事务可以看到其他事务“尚未提交”的修改。</p>
+<h3 id="提交读"><a href="#提交读" class="headerlink" title="提交读"></a>提交读</h3><p>在提交读（READ COMMITTED）级别中，基于锁机制并发控制的DBMS需要对选定对象的写锁一直保持到事务结束，但是读锁在SELECT操作完成后马上释放（因此“不可重复读”现象可能会发生，见下面描述）。和前一种隔离级别一样，也不要求“范围锁”。</p>
+<h3 id="可重复读"><a href="#可重复读" class="headerlink" title="可重复读"></a>可重复读</h3><p>在可重复读（REPEATABLE READS）隔离级别中，基于锁机制并发控制的DBMS需要对选定对象的读锁（read locks）和写锁（write locks）一直保持到事务结束，但不要求“范围锁”，因此可能会发生“幻影读”。</p>
+<h3 id="可串行化"><a href="#可串行化" class="headerlink" title="可串行化"></a>可串行化</h3><p>可串行化（Serializable）是最高的隔离级别。在基于锁机制并发控制的DBMS上，可串行化要求在选定对象上的读锁和写锁直到事务结束后才能释放。在SELECT的查询中使用一个“WHERE”子句来描述一个范围时应该获得一个“范围锁”（range-locks），这种机制可以避免“幻影读”现象。当采用不基于锁的并发控制时不用获取锁，但当系统检测到几个并发事务有写冲突时，只有其中一个是允许提交的。</p>
+<h2 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h2><h3 id="数据库锁"><a href="#数据库锁" class="headerlink" title="数据库锁"></a>数据库锁</h3><p>事务分为几种类型：读事务，写事务以及读写混合事务。相应地，锁也分为两种类型：读锁以及写锁，允许对同一个元素加多个读锁，但只允许加一个写锁，且写事务将阻塞读事务。这里的元素可以是一行，也可以是一个数据块甚至一个表格。事务如果只操作一行，可以对该行加相应的读锁或者写锁；如果操作多行，需要锁住整个行范围。</p>
+<h3 id="写时复制"><a href="#写时复制" class="headerlink" title="写时复制"></a>写时复制</h3><p>互联网业务中读事务占的比例往往远远超过写事务，很多应用的读写比例达到6:1，甚至10:1。写时复制（Copy-On-Write，COW）读操作不用加锁，极大地提高了读取性能。</p>
+<p>写时复制B+树执行写操作的步骤如下。</p>
+<ol>
+<li>拷贝：将从叶子到根节点路径上的所有节点拷贝出来。</li>
+<li>修改：对拷贝的节点执行修改。</li>
+<li>提交：原子地切换根节点的指针，使之指向新的根节点。</li>
+</ol>
+<p>如果读操作发生在第3步提交之前，那么，将读取老节点的数据，否则将读取新节点，读操作不需要加锁保护。写时复制技术涉及引用计数，对每个节点维护一个引用计数，表示被多少节点引用，如果引用计数变为0，说明没有节点引用，可以被垃圾回收。写时复制技术原理简单，问题是每次写操作都需要拷贝从叶子到根节点路径上的所有节点，写操作成本高，另外，多个写操作之间是互斥的，同一时刻只允许一个写操作。</p>
+<h3 id="多版本并发控制"><a href="#多版本并发控制" class="headerlink" title="多版本并发控制"></a>多版本并发控制</h3><p>除了写时复制技术，多版本并发控制，即MVCC（Multi-Version Concurrency Control），也能够实现读事务不加锁。MVCC对每行数据维护多个版本，无论事务的执行时间有多长，MVCC总是能够提供与事务开始时刻相一致的数据。</p>
+<p>以MySQL InnoDB存储引擎为例，InnoDB对每一行维护了两个隐含的列，其中一列存储行被修改的“时间”，另外一列存储行被删除的“时间”，注意，InnoDB存储的并不是绝对时间，而是与时间对应的数据库系统的版本号，每当一个事务开始时，InnoDB都会给这个事务分配一个递增的版本号，所以版本号也可以被认为是事务号。对于每一行查询语句，InnoDB都会把这个查询语句的版本号同这个查询语句遇到的行的版本号进行对比，然后结合不同的事务隔离级别，来决定是否返回该行。</p>
+<p>下面分别以SELECT、DELETE、INSERT、UPDATE语句来说明。</p>
+<h4 id="SELECT"><a href="#SELECT" class="headerlink" title="SELECT"></a>SELECT</h4><p>对于SELECT语句，只有同时满足了下面两个条件的行，才能被返回：</p>
+<ol>
+<li>行的修改版本号小于等于该事务号。</li>
+<li>行的删除版本号要么没有被定义，要么大于事务的版本号。</li>
+</ol>
+<p>如果行的修改或者删除版本号大于事务号，说明行是被该事务后面启动的事务修改或者删除的。在可重复读取隔离级别下，后开始的事务对数据的影响不应该被先开始的事务看见，所以应该忽略后开始的事务的更新或者删除操作。</p>
+<h4 id="INSERT"><a href="#INSERT" class="headerlink" title="INSERT"></a>INSERT</h4><p>对新插入的行，行的修改版本号更新为该事务的事务号。</p>
+<h4 id="DELETE"><a href="#DELETE" class="headerlink" title="DELETE"></a>DELETE</h4><p>对于删除，InnoDB直接把该行的删除版本号设置为当前的事务号，相当于标记为删除，而不是物理删除。</p>
+<h4 id="UPDATE"><a href="#UPDATE" class="headerlink" title="UPDATE"></a>UPDATE</h4><p>在更新行的时候，InnoDB会把原来的行复制一份，并把当前的事务号作为该行的修改版本号。</p>
+<p>MVCC读取数据的时候不用加锁，每个查询都通过版本检查，只获得自己需要的数据版本，从而大大提高了系统的并发度。当然，为了实现多版本，必须对每行存储额外的多个版本的数据。另外，MVCC存储引擎还必须定期删除不再需要的版本，及时回收空间。</p>
+<h2 id="故障恢复"><a href="#故障恢复" class="headerlink" title="故障恢复"></a>故障恢复</h2><p>数据库运行过程中可能会发生故障，这个时候某些事务可能执行到一半但没有提交，当系统重启时，需要能够恢复到一致的状态，即要么提交整个事务，要么回滚。数据库系统以及其他的分布式存储系统一般采用操作日志（有时也称为提交日志，即Commit Log）技术来实现故障恢复。操作日志分为回滚日志（UNDO Log）、重做日志（REDO Log）以及UNDO&#x2F;REDO日志。如果记录事务修改前的状态，则为回滚日志；相应地，如果记录事务修改后的状态，则为重做日志。</p>
+<h3 id="操作日志"><a href="#操作日志" class="headerlink" title="操作日志"></a>操作日志</h3><p>为了保证数据库的一致性，数据库操作需要持久化到磁盘，如果每次操作都随机更新磁盘的某个数据块，系统性能将会很差。因此，通过操作日志顺序记录每个数据库操作并在内存中执行这些操作，内存中的数据定期刷新到磁盘，实现将随机写请求转化为顺序写请求。</p>
+<h3 id="重做日志"><a href="#重做日志" class="headerlink" title="重做日志"></a>重做日志</h3><p>存储系统如果采用REDO日志，其写操作流程如下：<br>1）将REDO日志以追加写的方式写入磁盘的日志文件。<br>2）将REDO日志的修改操作应用到内存中。<br>3）返回操作成功或者失败。</p>
+<p>REDO日志的约束规则为：在修改内存中的元素X之前，要确保与这一修改相关的操作日志必须先刷入到磁盘中。顾名思义，用REDO日志进行故障恢复，只需要从头到尾读取日志文件中的修改操作，并将它们逐个应用到内存中，即重做一遍。</p>
+<p>为什么需要先写操作日志再修改内存中的数据呢？假如先修改内存中的数据，那么用户就能立刻读到修改后的结果，一旦在完成内存修改与写入日志之间发生故障，那么最近的修改操作无法恢复。然而，之前的用户可能已经读取了修改后的结果，这就会产生不一致的情况。</p>
+<h3 id="优化手段"><a href="#优化手段" class="headerlink" title="优化手段"></a>优化手段</h3><h4 id="成组提交"><a href="#成组提交" class="headerlink" title="成组提交"></a>成组提交</h4><p>存储系统要求先将REDO日志刷入磁盘才可以更新内存中的数据，如果每个事务都要求将日志立即刷入磁盘，系统的吞吐量将会很差。因此，存储系统往往有一个是否立即刷入磁盘的选项，对于一致性要求很高的应用，可以设置为立即刷入；相应地，对于一致性要求不太高的应用，可以设置为不要求立即刷入，首先将REDO日志缓存到操作系统或者存储系统的内存缓冲区中，定期刷入磁盘。这种做法有一个问题，如果存储系统意外故障，可能丢失最后一部分更新操作。</p>
+<p>成组提交（Group Commit）技术是一种有效的优化手段。REDO日志首先写入到存储系统的日志缓冲区中：</p>
+<ul>
+<li>日志缓冲区中的数据量超过一定大小，比如512KB；</li>
+<li>距离上次刷入磁盘超过一定时间，比如10ms。</li>
+</ul>
+<p>当满足以上两个条件中的某一个时，将日志缓冲区中的多个事务操作一次性刷入磁盘，接着一次性将多个事务的修改操作应用到内存中并逐个返回客户端操作结果。与定期刷入磁盘不同的是，成组提交技术保证REDO日志成功刷入磁盘后才返回写操作成功。这种做法可能会牺牲写事务的延时，但大大提高了系统的吞吐量。</p>
+<h4 id="检查点"><a href="#检查点" class="headerlink" title="检查点"></a>检查点</h4><p>如果所有的数据都保存在内存中，那么可能出现两个问题：</p>
+<ul>
+<li>故障恢复时需要回放所有的REDO日志，效率较低。如果REDO日志较多，比如超过100GB，那么，故障恢复时间是无法接受的。</li>
+<li>内存不足。即使内存足够大，存储系统往往也只能够缓存最近较长一段时间的更新操作，很难缓存所有的数据。</li>
+</ul>
+<p>因此，需要将内存中的数据定期转储（Dump）到磁盘，这种技术称为checkpoint（检查点）技术。系统定期将内存中的操作以某种易于加载的形式（checkpoint文件）转储到磁盘中，并记录checkpoint时刻的日志回放点，以后故障恢复只需要回放checkpoint时刻的日志回放点之后的REDO日志。</p>
+<p>由于将内存数据转储到磁盘需要很长的时间，而这段时间还可能有新的更新操作，checkpoint必须找到一个一致的状态。checkpoint流程如下：</p>
+<ol>
+<li>日志文件中记录“START CKPT”。</li>
+<li>将内存中的数据以某种易于加载的组织方式转储到磁盘中，形成checkpoint文件。checkpoint文件中往往记录“START CKPT”的日志回放点，用于故障恢复。</li>
+<li>日志文件中记录“END CKPT”。故障恢复流程如下：<ul>
+<li>将checkpoint文件加载到内存中，这一步操作往往只需要加载索引数据，加载效率很高。</li>
+<li>读取checkpoint文件中记录的“START CKPT”日志回放点，回放之后的REDO日志。</li>
+</ul>
+</li>
+</ol>
+<p>上述checkpoint故障恢复方式依赖REDO日志中记录的都是修改后的结果这一特性，也就是说，即使checkpoint文件中已经包含了某些操作的结果，重新回放一次或者多次这些操作的REDO日志也不会造成数据错误。如果同一个操作执行一次与重复执行多次的效果相同，这种操作具有“幂等性”。有些操作不具备这种特性，例如，加法操作、追加操作。如果REDO日志记录的是这种操作，那么checkpoint文件中的数据一定不能包含“START CKPT”与“END CKPT”之间的操作。为此，主要有两种处理方法：</p>
+<ul>
+<li>checkpoint过程中停止写服务，所有的修改操作直接失败。这种方法实现简单，但不适合在线业务。</li>
+<li>内存数据结构支持快照。执行checkpoint操作时首先对内存数据结构做一次快照，接着将快照中的数据转储到磁盘生成checkpoint文件，并记录此时对应的REDO日志回放点。生成checkpoint文件的过程中允许写操作，但checkpoint文件中的快照数据不会包含这些操作的结果。</li>
+</ul>
+<h2 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h2><p>数据压缩分为有损压缩与无损压缩两种，有损压缩算法压缩比率高，但数据可能失真，一般用于压缩图片、音频、视频；而无损压缩算法能够完全还原原始数据，本文只讨论无损压缩算法。早期的数据压缩技术就是基于编码上的优化技术，其中以Huffman编码最为知名，它通过统计字符出现的频率计算最优前缀编码。1977年，以色列人Jacob Ziv和Abraham Lempel发表论文《顺序数据压缩的一个通用算法》，从此，LZ系列压缩算法几乎垄断了通用无损压缩领域，常用的Gzip算法中使用的LZ77，GIF图片格式中使用的LZW，以及LZO等压缩算法都属于这个系列。设计压缩算法时不仅要考虑压缩比，还要考虑压缩算法的执行效率。Google Bigtable系统中采用BMDiff和Zippy压缩算法，这两个算法也是LZ算法的变种，它们通过牺牲一定的压缩比，换来执行效率的大幅提升。</p>
+<p>压缩算法的核心是找重复数据，列式存储技术通过把相同列的数据组织在一起，不仅减少了大数据分析需要查询的数据量，还大大地提高了数据的压缩比。传统的OLAP（Online Analytical Processing）数据库，如Sybase IQ、Teradata，以及Bigtable、HBase等分布式表格系统都实现了列式存储。本节介绍数据压缩以及列式存储相关的基础知识。</p>
+<h3 id="压缩算法"><a href="#压缩算法" class="headerlink" title="压缩算法"></a>压缩算法</h3><p>压缩是一个专门的研究课题，没有通用的做法，需要根据数据的特点选择或者自己开发合适的算法。压缩的本质就是找数据的重复或者规律，用尽量少的字节表示。</p>
+<h4 id="Huffman编码"><a href="#Huffman编码" class="headerlink" title="Huffman编码"></a>Huffman编码</h4><h4 id="LZ系列压缩算法"><a href="#LZ系列压缩算法" class="headerlink" title="LZ系列压缩算法"></a>LZ系列压缩算法</h4><h4 id="BMDif与Zippy"><a href="#BMDif与Zippy" class="headerlink" title="BMDif与Zippy"></a>BMDif与Zippy</h4><h3 id="列式存储"><a href="#列式存储" class="headerlink" title="列式存储"></a>列式存储</h3><p>传统的行式数据库将一个个完整的数据行存储在数据页中。如果处理查询时需要用到大部分的数据列，这种方式在磁盘IO上是比较高效的。一般来说，OLTP（Online Transaction Processing，联机事务处理）应用适合采用这种方式。</p>
+<h2 id="数据分布"><a href="#数据分布" class="headerlink" title="数据分布"></a>数据分布</h2><h3 id="哈希分布"><a href="#哈希分布" class="headerlink" title="哈希分布"></a>哈希分布</h3><p><strong>哈希取模</strong></p>
+<p>根据数据的某一特征计算哈希值，并将哈希值与集群中的服务器建立映射关系，从而将不同哈希值的数据分布到不同的服务器上。例如，将集群中的服务器按0到N-1编号（N为服务器的数量），根据数据的主键（hash（key）% N）或者数据所属的用户id（hash（user_id）% N）计算哈希值，来决定将数据映射到哪一台服务器。</p>
+<p><strong>哈希取模的问题</strong></p>
+<ul>
+<li>如果按照主键散列，同一用户id下的数据可能被分散到多台服务器，这会是的一次操作一个用户id下的多条记录变得困难；</li>
+<li>如果按照用户id散列，容易出现“数据倾斜”问题，某些大用户的数据量很大，无论集群多大，这些用户始终有一台服务器处理；</li>
+<li>当服务器上下线是，N值发生变化，数据映射完全被打乱，几乎所有的数据都需要重新分布，这将带来大量的数据迁移。</li>
+</ul>
+<p><strong>解决办法</strong></p>
+<p>一致性哈希算法是其中一种思路：给系统中每个节点分配一个随机token，这些token构成一个哈希环。执行数据存放操作时，先计算Key（主键）的哈希值，然后存放到顺时针方向第一个大于或者等于该哈希值的token所在的节点。一致性哈希的优点在于节点加入&#x2F;删除时只会影响到在哈希环中相邻的节点，而对其他节点没影响。</p>
+<h3 id="顺序分布"><a href="#顺序分布" class="headerlink" title="顺序分布"></a>顺序分布</h3><p>哈希散列破坏了数据的有序性，只支持随机读取操作，不能够支持顺序扫描。某些系统可以在应用层做折衷，比如互联网应用经常按照用户来进行数据拆分，并通过哈希方法进行数据分布，同一个用户的数据分布到相同的存储节点，允许对同一个用户的数据执行顺序扫描，由应用层解决跨多个用户的操作问题。另外，这种方式可能出现某些用户的数据量太大的问题，由于用户的数据限定在一个存储节点，无法发挥分布式存储系统的多机并行处理能力。</p>
+<p>顺序分布在分布式表格系统中比较常见，一般的做法是将大表顺序划分为连续的范围，每个范围称为一个子表，总控服务器负责将这些子表按照一定的策略分配到存储节点上。如图3-3所示，用户表（User表）的主键范围为1～7000，在分布式存储系统中划分为多个子表，分别对应数据范围1～1000，1001～2000，…6001～7000。Meta表是可选的，某些系统只有根表（Root表）一级索引，在Root表中维护用户表的位置信息，即每个User子表在哪个存储节点上。为了支持更大的集群规模，Bigtable这样的系统将索引分为两级：根表以及元数据表（Meta表），由Meta表维护User表的位置信息，而Root表用来维护Meta表的位置信息。读User表时，需要通过Meta表查找相应的User子表所在的存储节点，而读取Meta表又需要通过Root表查找相应的Meta子表所在的存储节点。</p>
+<h3 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h3><p>分布式存储系统的每个集群中一般有一个总控节点，其他节点为工作节点，由总控节点根据全局负载信息进行整体调度。工作节点刚上线时，总控节点需要将数据迁移到该节点，另外，系统运行过程中也需要不断地执行迁移任务，将数据从负载较高的工作节点迁移到负载较低的工作节点。</p>
+<p>工作节点通过心跳包（Heartbeat，定时发送）将节点负载相关的信息，如CPU，内存，磁盘，网络等资源使用率，读写次数及读写数据量等发送给主控节点。主控节点计算出工作节点的负载以及需要迁移的数据，生成迁移任务放入迁移队列中等待执行。</p>
+<p>负载均衡需要执行数据迁移操作。在分布式存储系统中往往会存储数据的多个副本，其中一个副本为主副本，其他副本为备副本，由主副本对外提供服务。迁移备副本不会对服务造成影响，迁移主副本也可以首先将数据的读写服务切换到其他备副本。整个迁移过程可以做到无缝，对用户完全透明。</p>
+<h1 id="分布式文件系统-1"><a href="#分布式文件系统-1" class="headerlink" title="分布式文件系统"></a>分布式文件系统</h1><p>分布式文件系统主要由两个功能：一个是存储文档、图像、视频之类的Blob类型数据；另一个是作为分布式表格系统的持久化层。</p>
+<h2 id="GFS（Google-File-System）介绍"><a href="#GFS（Google-File-System）介绍" class="headerlink" title="GFS（Google File System）介绍"></a>GFS（Google File System）介绍</h2><h2 id="TFS（Taobao-File-System）介绍"><a href="#TFS（Taobao-File-System）介绍" class="headerlink" title="TFS（Taobao File System）介绍"></a>TFS（Taobao File System）介绍</h2><h2 id="Facebook-Haystack介绍"><a href="#Facebook-Haystack介绍" class="headerlink" title="Facebook Haystack介绍"></a>Facebook Haystack介绍</h2><h2 id="CDN（内容分发网络）介绍"><a href="#CDN（内容分发网络）介绍" class="headerlink" title="CDN（内容分发网络）介绍"></a>CDN（内容分发网络）介绍</h2><p>CDN通过将网络内容发布到靠近用户的边缘节点，使不同地域的用户在访问相同网页时可以就近获取。这样既可以减轻源服务器的负担，也可以减少整个网络中的流量分布不均的情况，进而改善整个网络性能。所谓的边缘节点是CDN服务提供商经过精心挑选的距离用户非常近的服务器节点，仅“一跳”（Single Hop）之遥。用户在访问时就无需再经过多个路由器，大大减少访问时间。</p>
+<p>从图可以看出，DNS在对域名解析时不再向用户返回源服务器的IP，而是返回了由智能CDN负载均衡系统选定的某个边缘节点的IP。用户利用这个IP访问边缘节点，然后该节点通过其内部DNS解析得到源服务器IP并发出请求来获取用户所需的页面，如果请求成功，边缘节点会将页面缓存下来，下次用户访问时可以直接读取，而不需要每次都访问源服务器。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_45" alt="用户访问CDN的整体流程"></p>
+<h3 id="CDN架构"><a href="#CDN架构" class="headerlink" title="CDN架构"></a>CDN架构</h3><p>淘宝CDN系统用于支持用户购物，尤其是“双11”光棍节时的海量图片请求。如图所示，图片存储在后台的TFS集群中，CDN系统将这些图片缓存到离用户最近的边缘节点。CDN采用两级Cache：L1-Cache以及L2-Cache。用户访问淘宝网的图片时，通过全局调度系统（Global Load Balancing）调度到某个L1-Cache节点。如果L1-Cache命中，那么直接将图片数据返回用户；否则，请求L2-Cache节点，并将返回的图片数据缓存到L1-Cache节点。如果L2-Cache命中，直接将图片数据返回给L1-Cache节点；否则，请求源服务器的图片服务器集群。每台图片服务器是一个运行着Nginx的Web服务器，它还会在本地缓存图片，只有当本地缓存也不命中时才会请求后端的TFS集群，图片服务器集群和TFS集群部署在同一个数据中心内。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_46" alt="淘宝网CDN整体架构"><br>对于每个CDN节点，其架构如图所示。从图中可以看出，每个CDN节点内部通过LVS+Haproxy的方式进行负载均衡。其中，LVS是四层负载均衡软件，性能好；Haproxy是七层负载均衡软件，能够支持更加灵活的负载均衡策略。通过有机结合两者，可以将不同的图片请求调度到不同的Squid服务器。</p>
+<p>Squid服务器用来缓存Blob图片数据。用户的请求按照一定的策略发送给某台Squid服务器，如果缓存命中则直接返回；否则，Squid服务器首先会请求源服务器获取图片缓存到本地，接着再将图片数据返回给用户。数据通过一致性哈希的方式分布到不同的Squid服务器，使得增加&#x2F;删除服务器只需要移动1&#x2F;n（n为Squid服务器总数）的对象。<br><img src="https://res.weread.qq.com/wrepub/epub_621735_47" alt="淘宝网单个CDN节点架构"><br>相比分布式存储系统，分布式缓存系统的实现要容易很多。这是因为缓存系统不需要考虑数据持久化，如果缓存服务器出现故障，只需要简单地将它从集群中剔除即可。</p>
+<ol>
+<li><p><strong>分级存储</strong> 分级存储是淘宝CDN架构的一个很大创新。由于缓存数据有较高的局部性，在Squid服务器上使用SSD+SAS+SATA混合存储，图片随着热点变化而迁移，最热门的存储到SSD，中等热度的存储到SAS，轻热度的存储到SATA。通过这样的方式，能够很好地结合SSD的性能和SAS、SATA磁盘的成本优势。</p>
+</li>
+<li><p><strong>低功耗服务器定制</strong> 淘宝CDN架构的另外一个亮点是低功耗服务器定制。CDN缓存服务是IO密集型而不是CPU密集型的服务，因此，选用Intel Atom CPU定制低功耗服务器，在保证服务性能的前提下大大降低了整体功耗。</p>
+</li>
+</ol>
+<h1 id="分布式键值系统-1"><a href="#分布式键值系统-1" class="headerlink" title="分布式键值系统"></a>分布式键值系统</h1><p>分布式键值模型可以看成是分布式表格模型的一种特例。然而，由于它只支持针对单个key-value的增、删、查、改操作，因此，适用前文提到的哈希分布算法。</p>
+<h2 id="Amazon-Dynamo"><a href="#Amazon-Dynamo" class="headerlink" title="Amazon Dynamo"></a>Amazon Dynamo</h2><h2 id="淘宝Tair"><a href="#淘宝Tair" class="headerlink" title="淘宝Tair"></a>淘宝Tair</h2><h1 id="分布式表格系统-1"><a href="#分布式表格系统-1" class="headerlink" title="分布式表格系统"></a>分布式表格系统</h1><p>分布式表格系统对外提供表格模型，每个表格由很多行组成，通过主键唯一标识，每一行包含很多列。整个表格在系统中全局有序，适用前文讲的顺序分布。</p>
+<h2 id="Google-Bigtable"><a href="#Google-Bigtable" class="headerlink" title="Google Bigtable"></a>Google Bigtable</h2><h2 id="Google-Megastore"><a href="#Google-Megastore" class="headerlink" title="Google Megastore"></a>Google Megastore</h2><h2 id="Windows-Azure-Storage"><a href="#Windows-Azure-Storage" class="headerlink" title="Windows Azure Storage"></a>Windows Azure Storage</h2><h1 id="分布式数据库-1"><a href="#分布式数据库-1" class="headerlink" title="分布式数据库"></a>分布式数据库</h1><h2 id="MySQL-Sharding"><a href="#MySQL-Sharding" class="headerlink" title="MySQL Sharding"></a>MySQL Sharding</h2><h2 id="Microsoft-SQL-Azure"><a href="#Microsoft-SQL-Azure" class="headerlink" title="Microsoft SQL Azure"></a>Microsoft SQL Azure</h2><h2 id="Google-Spanner"><a href="#Google-Spanner" class="headerlink" title="Google Spanner"></a>Google Spanner</h2><h1 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h1><h2 id="一致性哈希（Distributed-Hash-Table，DHT）"><a href="#一致性哈希（Distributed-Hash-Table，DHT）" class="headerlink" title="一致性哈希（Distributed Hash Table，DHT）"></a>一致性哈希（Distributed Hash Table，DHT）</h2><p><strong>适应条件</strong></p>
+<p>一致性哈希提出了在动态变化的Cache环境中，哈希算法应该满足的4个适应条件：</p>
+<ul>
+<li><strong>均衡性（Balance）</strong> 哈希的结果能够尽可能分布到所有的缓冲中去，这样可以使得所有的缓冲空间都得到利用。</li>
+<li><strong>单调性（Monotonicity）</strong> 单调性是指如果已经有一些内容通过哈希分派到了相应的缓冲中，又有新的缓冲区加入到系统中，那么哈希的结果应能够保证原有已分配的内容可以被映射到新的缓冲区中去，而不会被映射到旧的缓冲集合中的其他缓冲区。当缓冲区大小变化时一致性哈希尽量保护已分配的内容不会被重新映射到新缓冲区。</li>
+<li><strong>分散性（Spread）</strong> 在分布式环境中，终端有可能看不到所有的缓冲，而是只能看到其中的一部分。当终端希望通过哈希过程将内容映射到缓冲上时，由于不同终端所见的缓冲范围有可能不同，从而导致哈希的结果不一致，最终的结果是相同的内容被不同的终端映射到不同的缓冲区中。这种情况显然是应该避免的，因为它导致相同内容被存储到不同缓冲中去，降低了系统存储的效率。分散性的定义就是上述情况发生的严重程度。好的哈希算法应能够尽量避免不一致的情况发生，也就是尽量降低分散性。</li>
+<li><strong>负载（Load）</strong> 负载问题实际上是从另一个角度看待分散性问题。既然不同的终端可能将相同的内容映射到不同的缓冲区中，那么对于一个特定的缓冲区而言，也可能被不同的用户映射为不同的内容。与分散性一样，这种情况也是应当避免的，因此好的哈希算法应能够尽量降低缓冲的负荷。</li>
+</ul>
+<p><strong>设计</strong></p>
+<ul>
+<li><strong>环形哈希空间</strong> 一致性哈希算法通过一个叫作一致性哈希环的数据结构实现。这个环的起点是 0，终点是 2^32 - 1，并且起点与终点连接，故这个环的整数分布范围是 [0, 2^32-1]。</li>
+<li><strong>映射服务器节点</strong> 将各个服务器使用Hash进行一个哈希，具体可以选择服务器的ip或唯一主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置。</li>
+<li><strong>映射数据</strong> 现在我们将objectA、objectB、objectC、objectD四个对象通过特定的Hash函数计算出对应的key值，然后散列到Hash环上,然后从数据所在位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器。</li>
+<li><strong>服务器的删除与添加</strong> 如果此时NodeC宕机了，此时Object A、B、D不会受到影响，只有Object C会重新分配到Node D上面去，而其他数据对象不会发生变化。如果在环境中新增一台服务器Node X，通过hash算法将Node X映射到环中，通过按顺时针迁移的规则，那么Object C被迁移到了Node X中，其它对象还保持这原有的存储位置。通过对节点的添加和删除的分析，一致性哈希算法在保持了单调性的同时，还是数据的迁移达到了最小，这样的算法对分布式集群来说是非常合适的，避免了大量数据迁移，减小了服务器的的压力。</li>
+<li><strong>虚拟节点</strong> 到目前为止一致性hash也可以算做完成了，但是有一个问题还需要解决，那就是平衡性。当服务器节点比较少的时候，会出现一个问题，就是此时必然造成大量数据集中到一个节点上面，极少数数据集中到另外的节点上面。为了解决这种数据倾斜问题，一致性哈希算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以先确定每个物理节点关联的虚拟节点数量，然后在ip或者主机名后面增加编号。例如上面的情况，可以为每台服务器计算三个虚拟节点，于是可以分别计算 “Node A#1”、“Node A#2”、“Node A#3”、“Node B#1”、“Node B#2”、“Node B#3”的哈希值，于是形成六个虚拟节点；同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”、“Node A#2”、“Node A#3”三个虚拟节点的数据均定位到Node A上。这样就解决了服务节点少时数据倾斜的问题。每个物理节点关联的虚拟节点数量就根据具体的生产环境情况在确定。</li>
+</ul>
+<h2 id="B-Tree"><a href="#B-Tree" class="headerlink" title="B+ Tree"></a>B+ Tree</h2><h2 id="写时复制（Copy-On-Write，COW）"><a href="#写时复制（Copy-On-Write，COW）" class="headerlink" title="写时复制（Copy-On-Write，COW）"></a>写时复制（Copy-On-Write，COW）</h2><h2 id="多版本并发控制（Mutli-Version-Concurrency-Control，-MVCC）"><a href="#多版本并发控制（Mutli-Version-Concurrency-Control，-MVCC）" class="headerlink" title="多版本并发控制（Mutli-Version Concurrency Control， MVCC）"></a>多版本并发控制（Mutli-Version Concurrency Control， MVCC）</h2><h2 id="Paxos算法"><a href="#Paxos算法" class="headerlink" title="Paxos算法"></a>Paxos算法</h2><p>一种基于消息传递且具有高度容错性的共识（consensus）算法。Apache Zookeeper使用一个类Multi-Paxos的共识算法作为底层存储协同的机制。</p>
+<h2 id="二阶段提交（Two-phase-Commit"><a href="#二阶段提交（Two-phase-Commit" class="headerlink" title="二阶段提交（Two-phase Commit)"></a>二阶段提交（Two-phase Commit)</h2><p>二阶段提交是指在计算机网络以及数据库领域内，为了使基于分布式系统架构下的所有节点在进行事务提交时保持一致性而设计的一个演算法。通常，二阶段提交也被称为一种协议。在分布式系统中，每个节点虽然可以知晓自己的操作是成功或失败，却无法知道其他节点的操作是成功或失败。当一个事务跨越多个节点时，为了保持事务的ACID特性，需要引入一个作为协调者的组件来统一掌控所有节点（成为参与者）的操作结果并最终指示这些节点是否要把操作结果进行真正的提交。因此，二阶段提交的算法思路可以概括为：参与者将操作成败通知协调者，再由协调者根据所有参与者的反馈情报决定各参与者是否要提交操作还是终止操作。</p>
+<p>需要注意的是，二阶段提交（2PC）不应该与并发控制中的二阶段锁（2PL）混淆。</p>
+<p>以下对二阶段提交算法分阶段进行说明。</p>
+<p><strong>第一阶段（提交请求阶段）</strong></p>
+<ol>
+<li>协调者节点向所有参与者节点询问是否可以执行提交操作，并开始等待各参与者节点响应。</li>
+<li>参与者节点执行询问发起未知的所有事务操作，并将Undo信息和Redo信息写入日志。</li>
+<li>各参与者节点响应协调者节点发起的询问。如果参与者节点的事务操作实际执行成功，则返回一个“同意”消息；否则返回一个“终止”消息。</li>
+</ol>
+<p><strong>第二阶段（提交执行阶段）</strong></p>
+<p><strong>成功</strong></p>
+<p>当协调者从所有参与者节点获得的响应消息都为“同意”时：</p>
+<ol>
+<li>协调者节点向所有参与者节点发出“正式提交”请求。</li>
+<li>参与者节点正式完成操作，并释放在整个事务期间内占用的资源。</li>
+<li>参与者节点向协调者节点发送“完成”消息。</li>
+<li>协调者节点收到所有参与者节点反馈的“完成”消息后，完成事务。</li>
+</ol>
+<p><strong>失败</strong></p>
+<p>如果任意参与者节点在第一阶段返回的响应消息为“终止”，或者协调者节点在第一阶段的询问超时之前无法获得所有参与者节点的响应消息时：</p>
+<ol>
+<li>协调者节点向所有参与者节点发出“回滚操作”请求。</li>
+<li>参与者节点利用之前写入Undo信息执行回滚，并释放在整个事务期间内占用的资源。</li>
+<li>参与者节点向协调者节点发送“回滚完成”消息。</li>
+<li>协调者节点收到所有参与者节点反馈的“回滚完成”消息后，取消事务。</li>
+</ol>
+<p><strong>缺点</strong></p>
+<p>二阶段提交算法的最大缺点就在于它的执行过程中间，节点都处于阻塞状态。另外，协调者节点只是参与者节点进行提交等操作时，如有参与者节点出现了崩溃等情况而导致协调者始终无法获取参与者的响应信息，这是协调者将只能依赖协调者自身的超时机制来生效。但往往超时机制生效时，协调者都会指示参与者进行回滚操作。</p>
+<h2 id="三阶段提交（Three-phase-Commit）"><a href="#三阶段提交（Three-phase-Commit）" class="headerlink" title="三阶段提交（Three-phase Commit）"></a>三阶段提交（Three-phase Commit）</h2><p>三阶段提交也叫三阶段提交协议，是在计算机网络及数据库的范畴下，使得一个分布式系统内的所有节点能够执行事务提交的一种分布式算法。三阶段提交是为了解决二阶段提交协议的缺点二设计的。</p>
+<p>与二阶段提交不同的是，三阶段提交是“非阻塞”协议。三阶段提交在二阶段提交的第一阶段与第二阶段之间插入了一个准备阶段，使得原先在两阶段提交中，参与者在投票之后，由于协调者发生崩溃或者错误，而导致参与者处于无法知晓是否提交或者中止的“不确定状态”所产生的可能相当长的延时的问题得以解决。</p>
+<h2 id="拜占庭将军问题"><a href="#拜占庭将军问题" class="headerlink" title="拜占庭将军问题"></a>拜占庭将军问题</h2><p><strong>起源</strong></p>
+<p>拜占庭位于如今的土耳其的伊斯坦布尔，是东罗马帝国的首都。由于当时拜占庭罗马帝国国土辽阔，为了达到防御目的，每个军队都分隔很远，将军与将军之间只能靠信差传消息。在战争的时候，拜占庭军队内所有将军和副官必须达成一致的共识，决定是否有赢的机会才去攻打敌人的阵营。但是，在军队内有可能存有叛徒和敌军的间谍，左右将军们的决定又扰乱整体军队的秩序。在进行共识时，结果并不代表大多数人的意见。这时候，在已知有成员谋反的情况下，其余忠诚的将军在不受叛徒的影响下如何达成一致的协议，拜占庭问题就此形成。</p>
+<p><strong>简介</strong></p>
+<p>拜占庭将军问题是一个协议问题，拜占庭帝国军队的将军们必须全体一致的决定是否攻击某一支敌军。问题是这些将军在地理上是分隔开来的，并且将军中存在叛徒。叛徒可以任意行动以达到以下目标：欺骗某些将军采取进攻行动；促成一个不是所有将军都同意的决定，如当将军们不希望进攻时促成进攻行动；或者迷惑某些将军，使他们无法做出决定。如果叛徒达到了这些目的之一，则任何攻击行动的结果都是注定要失败的，只有完全达成一致的努力才能获得胜利。</p>
+<p>拜占庭假设是对现实世界的模型化，由于硬件错误、网络拥塞或断开以及遭到恶意攻击，计算机和网络可能出现不可预料的行为。在互联网大背景下，当需要与不熟悉的对方进行价值交换活动时，人们如何才能防止不会被其中的恶意破坏者欺骗、迷惑从而作出错误的决策。进一步将“拜占庭将军问题”延伸到技术领域中来，其内涵可概括为：在缺少可信任的中央节点和可信任的通道的情况下，分布在网络中的各个节点应如何达成共识。</p>
+<p><strong>问题</strong></p>
+<p>在中本聪发明比特币以前，世界上并没有一个非常完美的方法来解决“拜占庭将军问题”。<br>究其根底，“拜占庭将军问题”最终想解决的是互联网交易、合作过程中的四个问题：</p>
+<ol>
+<li>信息发送的身份追溯；</li>
+<li>信息的私密性；</li>
+<li>不可伪造的签名；</li>
+<li>发送信息的规则。</li>
+</ol>
+<p>“拜占庭将军问题”其实就是网络世界的模型化。</p>
+<p><strong>解决方法</strong></p>
+<p>区块链轻而易举地解决了这一问题，它为信息发送加入了成本，降低了信息传递的速率，而且加入了一个随机元素使得在一定时间内只有一个将军可以广播信息。这里所说的成本就是区块链系统中基于随机哈希算法的“工作量证明”。哈希算法所做的事情就是计算获得的输入，得到一串64位的随机数字和字母的字符串。哈希算法对信息传递速率的限制加上加密工具使得区块链构成了一个无须信任的数据交互系统。在区块链上，一系列的交易、时间约定、域名记录、政治投票系统或者任何其他需要建立分布式协议的地方，参与者都可以达成一致。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li>大规模分布式存储系统：原理解析与架构实践（杨传辉编著）</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2021/07/21/Storage/" data-id="clu1a7ilm0005x7g00n1nb6kq" data-title="一文读懂分布式存储" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/28/zgc/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          一文读懂ZGC
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/15/java/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">一文读懂Java</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/03/21/aws/">AWS 服务介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/git-svn/">git-svn</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/21/Storage/">一文读懂分布式存储</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 牛古<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

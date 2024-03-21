@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一文读懂Java | 牛古说</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="本文记录学习Java过程中的知识点。为什么会有这篇文章呢？因为在网上总是看到这要的面试题：  Java的类加载机制是什么？ JVM的内存模型是什么？  我不禁要问，这些问题和我写代码有什么关系？我平时不知道这些不是照样写代码吗？所以写篇文章来研究一下这些问题和我们平常写代码都有写什么关系。 类加载器类加载器就是用来加载我们写的Java代码，JVM组成结构之一就是类加载子系统。 通过下面这个流程图，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文读懂Java">
+<meta property="og:url" content="https://ljun51.github.io/2021/07/15/java/index.html">
+<meta property="og:site_name" content="牛古说">
+<meta property="og:description" content="本文记录学习Java过程中的知识点。为什么会有这篇文章呢？因为在网上总是看到这要的面试题：  Java的类加载机制是什么？ JVM的内存模型是什么？  我不禁要问，这些问题和我写代码有什么关系？我平时不知道这些不是照样写代码吗？所以写篇文章来研究一下这些问题和我们平常写代码都有写什么关系。 类加载器类加载器就是用来加载我们写的Java代码，JVM组成结构之一就是类加载子系统。 通过下面这个流程图，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gsholpc7o1j30kc0esq3t.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gshovce3jej30hb064aa4.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gsiuk283jej30fy08ut9g.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gsm3280fnvj30ex0c50t4.jpg">
+<meta property="article:published_time" content="2021-07-15T07:18:17.000Z">
+<meta property="article:modified_time" content="2024-03-21T13:33:53.016Z">
+<meta property="article:author" content="牛古">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gsholpc7o1j30kc0esq3t.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="牛古说" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">牛古说</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">不动笔墨不读书。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ljun51.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-java" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/15/java/" class="article-date">
+  <time class="dt-published" datetime="2021-07-15T07:18:17.000Z" itemprop="datePublished">2021-07-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一文读懂Java
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>本文记录学习Java过程中的知识点。为什么会有这篇文章呢？因为在网上总是看到这要的面试题：</p>
+<ul>
+<li>Java的类加载机制是什么？</li>
+<li>JVM的内存模型是什么？</li>
+</ul>
+<p>我不禁要问，这些问题和我写代码有什么关系？我平时不知道这些不是照样写代码吗？所以写篇文章来研究一下这些问题和我们平常写代码都有写什么关系。</p>
+<h1 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h1><p>类加载器就是用来加载我们写的Java代码，JVM组成结构之一就是<code>类加载子系统</code>。</p>
+<p>通过下面这个流程图，了解一下我们写好的Java代码是怎么执行的。其中要经历类加载器这个流程。<img src="https://tva1.sinaimg.cn/large/008i3skNgy1gsholpc7o1j30kc0esq3t.jpg" alt="Java代码执行流程图"></p>
+<h2 id="类加载子系统"><a href="#类加载子系统" class="headerlink" title="类加载子系统"></a>类加载子系统</h2><h3 id="类加载系统架构图"><a href="#类加载系统架构图" class="headerlink" title="类加载系统架构图"></a>类加载系统架构图</h3><p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gshovce3jej30hb064aa4.jpg" alt="类加载系统架构图"></p>
+<h3 id="类的生命周期"><a href="#类的生命周期" class="headerlink" title="类的生命周期"></a>类的生命周期</h3><p>类的生命周期包括：加载、链接、初始化、使用、卸载。其中<code>加载</code>、<code>链接</code>、<code>初始化</code>属于类加载的过程。</p>
+<p>类加载器严格按顺序执行以下三个基础任务：</p>
+<ol>
+<li>加载：寻找并导入特定类型的二进制数据；</li>
+<li>链接：执行验证、准备及（可选）解析操作；<ul>
+<li>验证：确保导入类型的正确性。</li>
+<li>准备：为类变量分配内存并初始化内存为默认值。</li>
+<li>解析：将类型的符号引用转化为直接引用。</li>
+</ul>
+</li>
+<li>初始化：调用初始化类变量至正确起始值的Java代码。</li>
+</ol>
+<h3 id="类的加载过程"><a href="#类的加载过程" class="headerlink" title="类的加载过程"></a>类的加载过程</h3><h3 id="类的加载机制"><a href="#类的加载机制" class="headerlink" title="类的加载机制"></a>类的加载机制</h3><h4 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h4><h4 id="反向委派机制"><a href="#反向委派机制" class="headerlink" title="反向委派机制"></a>反向委派机制</h4><p>第三方包加载方式就是使用反向委派机制。</p>
+<h4 id="沙箱安全机制"><a href="#沙箱安全机制" class="headerlink" title="沙箱安全机制"></a>沙箱安全机制</h4><h3 id="类加载器分类"><a href="#类加载器分类" class="headerlink" title="类加载器分类"></a>类加载器分类</h3><h4 id="启动类加载器：Bootstrap-ClassLoader"><a href="#启动类加载器：Bootstrap-ClassLoader" class="headerlink" title="启动类加载器：Bootstrap ClassLoader"></a>启动类加载器：Bootstrap ClassLoader</h4><p>这个类加载器使用C&#x2F;C++实现，嵌套在JVM内部，Java程序无法直接操作这个类，它用来加载Java核心类库。如：<code>JAVA_HOME/jre/lib/rt.jar</code>、<code>resources.jar</code>、<code>sun.boot.class.path</code>路径下的包，用于提供JVM运行所需要的包。</p>
+<p>它没有父加载器，它加载<code>扩展类加载器</code>和<code>应用程序类加载器</code>，并成为他们的父类加载器。出于安全考虑，启动类只加载包名为：<code>java</code>、<code>javax</code>、<code>sun</code>开头的类。</p>
+<h4 id="扩展类加载器：Extension-ClassLoader"><a href="#扩展类加载器：Extension-ClassLoader" class="headerlink" title="扩展类加载器：Extension ClassLoader"></a>扩展类加载器：Extension ClassLoader</h4><p>Java语言编写，由<code>sun.misc.Launcher$ExtClassLoader</code>实现，可以使用Java程序操作这个加载器，派生继承自<code>java.lang.ClassLoader</code>，父加载器为启动类加载器。</p>
+<p>从系统属性<code>java.ext.dirs</code>目录中加载类库，或者从JDK安装目录<code>jre/lib/ext</code>目录中加载类库。可以把我们自己的包放在以下目录，就会自动加载进来。</p>
+<h4 id="应用程序类加载器：Application-ClassLoader"><a href="#应用程序类加载器：Application-ClassLoader" class="headerlink" title="应用程序类加载器：Application ClassLoader"></a>应用程序类加载器：Application ClassLoader</h4><p>Java语言编写，由<code>sun.misc.Launcher$AppClassLoader</code>实现。派生继承自<code>java.lang.ClassLoader</code>，父类加载器为启动类加载器。</p>
+<p>它负责加载环境变量<code>classpath</code>或者系统属性<code>java.class.path</code>指定路径下的类库，它是程序中的默认的类加载器，我们Java程序中的类，都是由它加载完成的。可以通过<code>ClassLoader#getSystemClassLoader()</code>获取并操作这个加载器。</p>
+<h4 id="用户定义类加载器：User-Defined-ClassLoader"><a href="#用户定义类加载器：User-Defined-ClassLoader" class="headerlink" title="用户定义类加载器：User Defined ClassLoader"></a>用户定义类加载器：User Defined ClassLoader</h4><p>一般情况下，以上3种加载器能满足我们日常的开发工作，不满足是可以自定义类加载器。比如用网络加载Java类，为了保证传输中的安全性，还需采用加密操作。那么上面3种类加载器就无法加载这个类，这就需要用户定义类加载器。</p>
+<p>用户定义类加载器实现步骤：</p>
+<blockquote>
+<p>继承<code>java.lang.ClassLoader</code>，重写<code>findClass()</code>方法；如果没有太复杂的需求，可以直接继承<code>URLClassLoader</code>，重写<code>loadClass()</code>方法；具体可以参考<code>AppClassLoader</code>和<code>ExtClassLoader</code>。</p>
+</blockquote>
+<p>获取ClassLoader几种方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式一：获取当前类的 ClassLoader</span></span><br><span class="line">clazz.getClassLoader();</span><br><span class="line"><span class="comment">// 方式二：获取当前线程上下文的 ClassLoader</span></span><br><span class="line">Thread.currentThread().getContextClassLoader();</span><br><span class="line"><span class="comment">// 方式三：获取系统的 ClassLoader</span></span><br><span class="line">ClassLoader.getSystemClassLoader();</span><br><span class="line"><span class="comment">// 方式四：获取调用者的 ClassLoader</span></span><br><span class="line">DriverManager.getCallerClassLoader();</span><br></pre></td></tr></table></figure>
+
+<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><p>目前的内存分配策略于垃圾回收技术已经相对成熟，为什么要去了解垃圾回收（Garbage Collection）呢？答案很简单：当需要排查各种问题时，当垃圾收集成为系统达到更高并发量的瓶颈时，我们就需要对这些技术进行必要的监控、调节。</p>
+<p>Java内存运行时区域的各个部分，其中<code>程序计数器</code>、<code>VM栈</code>、<code>本地方法栈</code>三个区域随线程而生，随线程而灭；栈中的帧随着方法的进入、退出而有条不紊的进行着出入栈操作；每一个帧中分配多少内存基本上在Class文件生成时就已知，可能会由JIT动态晚期编译进行一些优化，但大体上可以认为是编译期可知；因此这几个区域的内存分配和回收具备很高的确定性，不需要过多考虑回收的问题。而 <code>Java堆</code>和<code>方法区</code>（包括运行时常量池）则必须等到程序实际运行期间才能知道会创建哪些对象，这部分的分配和回收都是动态的。</p>
+<p><code>堆</code>里面存放着Java世界大部分对象，在回收前要确定这些对象之中哪些还存活，哪些已经不再被任何途径使用的对象。</p>
+<h2 id="引用计数法（Reference-Counting）"><a href="#引用计数法（Reference-Counting）" class="headerlink" title="引用计数法（Reference Counting）"></a>引用计数法（Reference Counting）</h2><p>存在引用时计数器加1，引用失效后计数器减1，任何时刻计数器为0的对象就是可以回收的对象。但引用计数法无法解决对象<code>循环引用</code>的问题。</p>
+<h2 id="根搜索算法（GC-Roots-Tracing）"><a href="#根搜索算法（GC-Roots-Tracing）" class="headerlink" title="根搜索算法（GC Roots Tracing）"></a>根搜索算法（GC Roots Tracing）</h2><p>在实际生产的语言中（Java、C#、Lisp），都是根据根搜索算法判定对象是否存活。基本思路就是通过一系列称为“GC Roots”的点作为起始进行向下搜索，当一个对象到GC Roots没有任何引用链（Reference Chain）相连，则证明此对象可以回收。</p>
+<p>在Java语言中，GC Roots包括：</p>
+<ol>
+<li>在<code>VM栈</code>（帧中的本地变量）中的引用。</li>
+<li><code>方法区</code>中的静态引用。</li>
+<li><code>JNI</code>（即一般说的Native方法）中的引用。</li>
+</ol>
+<p>判定一个对象被回收，至少经历<code>两次标记</code>过程：如果对象在进行根搜索后，发现没有于GC Roots相连接的引用，将会第一次标记，并在稍后执行它的<code>finalize()</code>方法（如果它有的话）。这里说的<code>执行</code>是指虚拟机会触发这个方法，但并不承诺会等待它运行结束。这点是必须的，否则一个对象在<code>finalize()</code>方法执行缓慢，甚至有死循环的将会很容易导致整个系统崩溃。<code>finalize()</code>方法是对象被回收的最后一次机会，稍后GC将进行第二次规模稍小的标记，如果在对象在 <code>finalize()</code>中被重新引用，那第二次标记时它将被移除<code>即将回收</code>的集合，否则将被回收。</p>
+<p>关于<code>方法区</code>，方法区即<code>永久代</code>，很多人认为永久代是没有GC的，Java虚拟机规范中不要求虚拟机在方法区实现GC，而且方法区GC的性价比一般比较低：在堆中，尤其是在新生代，常规应用进行一次GC可以回收70%-95%的空间，而永久代的GC效率远小于此。虽然虚拟机规范不要求，但当前生产中的商业JVM都有实现永久代的GC，主要回收两部分内容：<code>废弃常量</code>与<code>无用类</code>。回收思想与Java堆中的对象回收很类似，都是搜索是否存在引用，常量相对简单，与对象类似的判定即可。而类的回收则比较苛刻，需要满足下面3个条件：</p>
+<ol>
+<li>该类所有的实例都已经被GC，JVM中不存在该类的任何实例。</li>
+<li>加载该类的<code>ClassLoader</code>已经被GC。</li>
+<li>该类对象的<code>java.lang.Class</code>对象没有在任何地方被引用。如不能在任何地方通过反射访问该类的方法。</li>
+</ol>
+<p>在大量使用反射、动态代理、CGLib等bytecode框架、动态生成JSP以及OSGi这类频繁自定义ClassLoader的场景都需要JVM具备类卸载的支持，以保证永久代不会溢出。</p>
+<h2 id="标记-清除算法（Mark-Sweep）"><a href="#标记-清除算法（Mark-Sweep）" class="headerlink" title="标记-清除算法（Mark-Sweep）"></a>标记-清除算法（Mark-Sweep）</h2><p>算法分<code>标记</code>、<code>清除</code>两个阶段，首先标记出所有需要回收的对象，然后回收所有需要回收的对象。它是<code>最基础</code>的垃圾收集算法，后续算法都是基于这种思路，优化其缺点得到的。它的主要缺点有两个：一是效率问题，标记和清理两个过程效率都不高；二是空间问题，标记清理之后产生大量不连续的内存碎片，空间碎片大多可能会导致后续使用中无法找到足够的连续内存而提前触发另一次的垃圾搜集动作。</p>
+<h2 id="复制搜集算法（Copying）"><a href="#复制搜集算法（Copying）" class="headerlink" title="复制搜集算法（Copying）"></a>复制搜集算法（Copying）</h2><p>为了解决标记-清理算法的效率问题，一种称为“复制”的搜集算法出现，它将可用内存划分为两块，每次只使用其中一块，当半区内存用完了，仅将还存活的对象复制到另外一块上面，然后把原来整块内存空间清理掉。这样使得每次内存回收都是对整个半区的回收，内存分配时也不用考虑内存碎片等复杂情况。但是代价时将内存缩小为原来的一半。</p>
+<p>IBM有研究表明新生代中98%的对象是朝夕生死的，所以不需要按照1:1的比例来划分内存空间，而是将内存分为1块较大的eden空间和2块较少的survivor空间，每次使用eden和其中1块survivor，当回收时将eden和survivor还存活的对象一次性拷贝到另一块survivor空间上，然后清理掉eden和用过的survivor。现在的商业虚拟机都是用这种收集算法来回收新生代。Sun Hotspot的虚拟机默认eden和survivor的大小比例是8:1，也就是每次只有10%的内存是“浪费”的。当然，98%的对象可回收这是一般场景下的数据，没办法保证每次回收都只有10%以内的对象存活，当survivor空间不够用是，需要依赖其他内存（比如老年代）进行分配担保（Handle Promotion）。</p>
+<h2 id="标记-整理算法：（Mark-Compact）"><a href="#标记-整理算法：（Mark-Compact）" class="headerlink" title="标记-整理算法：（Mark-Compact）"></a>标记-整理算法：（Mark-Compact）</h2><p>此算法结合了“标记-清除”和“复制”两个算法的优点。也是分两阶段，第一阶段从根节点开始标记所有被引用对象，第二阶段遍历整个堆，把清除未标记对象及存活对象“压缩”到堆的其中一块，按顺序排放。此算法避免了“标记-清除”的碎片问题，同时也避免了“复制”算法的空间问题。</p>
+<h2 id="CMS：（Concurrent-Mark-Sweep）"><a href="#CMS：（Concurrent-Mark-Sweep）" class="headerlink" title="CMS：（Concurrent Mark Sweep）"></a>CMS：（Concurrent Mark Sweep）</h2><h2 id="为什么要分代"><a href="#为什么要分代" class="headerlink" title="为什么要分代"></a>为什么要分代</h2><p>分代的垃圾回收策略，是基于这样一个事实：<strong>不同的对象的生命周期是不一样的</strong>。因此，不同生命周期的对象可以采用不同的收集方式，以便提高回收效率。</p>
+<p>试想，在不进行对象存活时间区分的情况下，每次垃圾回收都是对整个堆空间进行回收，花费时间相对会长，同时，因为每次回收都需要遍历所有存活对象。但实际上，对于生命周期长的对象而言，这种遍历是没有效果的，因为遍历很多次，它们依旧存在。因此，分代垃圾回收采用分治的思想，进行代的划分，把不同生命周期的对象放在不同代上，不同代采用最合适的方式进行垃圾回收。</p>
+<h2 id="如何分代"><a href="#如何分代" class="headerlink" title="如何分代"></a>如何分代</h2><p><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gsiuk283jej30fy08ut9g.jpg" alt="分代示意图"></p>
+<p>虚拟机中共分为三个代：年轻代（Young Generation）、年老代（Old Generation）和持久代（Permanent Generation）。其中持久代主要存放的是Java类的类信息，与垃圾收集要收集的Java对象关系不大。年轻代和年老代的划分是对垃圾收集影响比较大的。</p>
+<p>年轻代：所有新生成的对象首先都是放在年轻代的。年轻代的目标就是尽可能快速的收集掉那些生命周期短的对象。年轻代分三个区。一个Eden区，两个Survivor区(一般而言)。大部分对象在Eden区中生成。当Eden区满时，还存活的对象将被复制到Survivor区（两个中的一个），当这个Survivor区满时，此区的存活对象将被复制到另外一个Survivor区，当这个Survivor去也满了的时候，从第一个Survivor区复制过来的并且此时还存活的对象，将被复制“年老区(Tenured)”。需要注意，Survivor的两个区是对称的，没先后关系，所以同一个区中可能同时存在从Eden复制过来 对象，和从前一个Survivor复制过来的对象，而复制到年老区的只有从第一个Survivor去过来的对象。而且，Survivor区总有一个是空的。同时，根据程序需要，Survivor区是可以配置为多个的（多于两个），这样可以增加对象在年轻代中的存在时间，减少被放到年老代的可能。</p>
+<p>年老代：在年轻代中经历N次垃圾回收后仍然存活的对象，就会放在年老代中。</p>
+<p>持久代：用户存放静态文件，如Java类、方法等。持久代对垃圾回收没有显著影响。但是有些应用可能动态生成或者调用一些class，例如Hibernate等，在这种时候需要设置一个比较大的持久代空间来存放这些运行过程中新增的类。持久代大小通过-XX:MaxPermSize&#x3D;<N>进行设置。</p>
+<h2 id="何时触发垃圾回收"><a href="#何时触发垃圾回收" class="headerlink" title="何时触发垃圾回收"></a>何时触发垃圾回收</h2><p>由于对象进行了分代处理，触发GC运行的条件要分新生代和老生代的情况来进行讨论，GC有两种类型：Scavenge GC和Full GC。</p>
+<p><strong>Scavenge GC</strong>：一般情况下，当新对象生成，并且在Eden申请空间失败是，就会触发Scavenge GC。</p>
+<p><strong>Full GC</strong>：对整个堆进行清理，包括Young、Tenured和Perm。Full GC因为需要对整个堆进行回收，所以比Scavenge GC要慢，因此应该尽可能减少Full GC的次数。对JVM调优的过程，很大一部分工作就是对Full GC的调节。</p>
+<p>有以下几点会触发GC：</p>
+<ul>
+<li>当Eden区和From Survivor区满时；</li>
+<li>调用System.gc时，系统建议建议执行Full GC，但不必然执行；</li>
+<li>年老代空间不足；</li>
+<li>方法区（持久代）空间不足；</li>
+<li>通过Minor GC后进入老年代的平均大小大于老年代的可用内存；</li>
+<li>有Eden区、From Space区向To Space区复制时，对象大小大于To Space可用内存，则把该对象转存到老年代，且老年代的可用内存小于该对象大小。</li>
+</ul>
+<h2 id="JVM调优工具"><a href="#JVM调优工具" class="headerlink" title="JVM调优工具"></a>JVM调优工具</h2><ul>
+<li>JConsole：JDK自带，功能简单</li>
+<li>JProfiler：商业软件，功能强大。</li>
+<li>VisualVM：JDK6-8自带，JDK9后不再自带，功能强大，与JProfiler类似。</li>
+</ul>
+<h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><h2 id="运行时数据区域"><a href="#运行时数据区域" class="headerlink" title="运行时数据区域"></a>运行时数据区域</h2><p>Java虚拟机在执行Java程序的过程中会把它所管理的内存划分为若干不同的数据区域。这些区域有各自不同的用途，以及创建和销毁时间，有的区域随着虚拟机进程的启动而一直存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。根据Java虚拟机规范规定，Java虚拟机所管理的内存将会包括以下几个运行时数据区域。<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gsm3280fnvj30ex0c50t4.jpg" alt="JVM运行时数据区域"></p>
+<h3 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h3><p>程序计数器（Program Counter Register）是一块较小的内存空间，他可以看作是当前线程所执行的字节码的行号指示器。在Java虚拟机的概念模型里，字节码解释器工作时就是通过这个计数器的值来取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。每个线程都拥有独立的程序计数器。各线程之间计数器互不影响，独立存储，这类内存区域为”线程私有“的内存。此区域是唯一一个在Java虚拟机规范中没有规定任何<code>OutOfMemoryError</code>情况的区域。</p>
+<h3 id="Java虚拟机栈"><a href="#Java虚拟机栈" class="headerlink" title="Java虚拟机栈"></a>Java虚拟机栈</h3><p>与程序计数器一样，Java虚拟机栈（Java Virtual Machine Stack）也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是Java方法执行的线程内存模型：每个方法被执行的时候，Java虚拟机都会同步创建一个栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态连接、方法出口等信息。每一个方法被调用直至执行完毕的过程，就对应着一个栈帧从入栈到出栈的过程。</p>
+<p>经常有人把Java内存区域笼统的划分为堆（Heap）内存和栈（Stack）内存，栈通常就是指虚拟机栈，或者更多的情况下只是指虚拟机栈中局部变量表部分。局部变量表存放了编译期可知的各种Java虚拟机基本数据类型（boolean、byte、char、short、int、long、float、double、对象引用（reference类型，不等于对象本身，可能是指向一个代表对象起始地址的引用地址，也可能是指向一个代表对象的句柄或者其他与此对象相关的位置）和returnAddress类型（指向一条字节码指令的地址）。</p>
+<p>这些数据类型在局部变量表中的存储空间以局部变量槽（Slot）来表示，其中64位长度的long和double类型会占用两个变量槽，其余的数据类型只占用一个。局部变量表所需的内存空间在编译期间完成分配，当进入一个方法时，这个方法需要在帧栈中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变局部变量表的大小。这里说的“大小”是指变量槽的数量，虚拟机真正使用多大的内存空间（譬如按照1个变量槽占用32个比特、64个比特或者更多）来实现一个变量槽，完成有具体的虚拟机实现自行决定。</p>
+<p>在Java虚拟机规范中，对这个内存区域规定了两类异常状况：如果线程的栈深度大于虚拟机所允许的深度，将抛出<code>StackOverflowError</code>异常；如果Java虚拟机栈容量可以动态扩展，当栈扩展无法申请到足够的内存会抛出<code>OutOfMemoryError</code>异常。</p>
+<h3 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h3><p>本地方法栈（Native Method Stacks）与与虚拟机栈所发挥的作用是非常相似的，其区别只是虚拟机栈为虚拟机执行Java方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的本地（Native）方法服务。</p>
+<p>Java虚拟机规范对本地方法栈中方法使用的语言、使用方式与数据结构并没有任何强制规定，因此具体的虚拟机可以根据需要自由实现它，甚至有的Java虚拟机（譬如Hot-Spot虚拟机）直接就把本地方法栈和虚拟机栈合二为一。与虚拟机栈一样，本地方法栈也会栈深度溢出或者栈扩展失败时分别抛出<code>StackOverflowError</code>和<code>OutOfMemoryError</code>异常。</p>
+<h3 id="Java堆"><a href="#Java堆" class="headerlink" title="Java堆"></a>Java堆</h3><p>对于Java应用程序来说，Java堆（Heap）是虚拟机所管理内存中最大的一块。Java堆是被所有线程共享的一块内存区域，在虚拟机启动时创建。此内存区域的唯一目的就是存放对象实例，Java世界里“几乎”所有的对象实例都在这里分配内存。在Java虚拟机规范中对Java堆的描述是：“所有的对象实例以及数组都应当在堆上分配”，这里的“几乎”是指从现实角度来看，随着Java语言的发展，现在已经能看到些许迹象表明日后可能出现值类型的支持，及时只考虑现在，由于即时编译技术的进步，尤其是逃逸分析技术的日渐强大，栈上分配、标量替换优化手段已经导致一些微妙的变化悄然发生，所以说Java对象实例都分配在堆上也渐渐变得不是那么绝对了。</p>
+<p>Java堆是垃圾收集器管理的内存区域，因此一些资料中它也被称作“GC堆”（Garbage Collected Heap）。从回收内存的角度看，由于现代垃圾收集器都是基于分代收集理论设计的，所以Java堆中经常会出现“新生代”、“年老代”、“永久代”、“Eden空间”、“From Survivor空间”、“To Survivor空间”等名词，这些区域的划分仅是一部分垃圾收集器的共同特性或者设计风格而已，不是Java虚拟机规范对Java堆的划分。</p>
+<p>如果从分配内存的角度看，所有线程共享的Java堆中可以划分出多个线程私有的分配缓存区（Thread Local Allocation Buffer，TLAB），以提升对象分配时的效率。不过无论从什么角度，无论如何划分，都不会改变Java堆中存储内容的共性，无论哪个区域，存储的都是对象的实例，将Java堆细分的目的只是为了更好的回收内存，或者更快的分配内存。</p>
+<p>根据Java虚拟机规范，Java堆可以处于物理上不连续的内存空间中，但逻辑上应该被视为连续的，这点有点像用磁盘空间去存储文件一样，并不要求每个文件都是连续存放。但对于大对象（典型的如数组对象），多数虚拟机实现处于简单实现、存储高效的考虑，很多可能会要求连续的内存空间。</p>
+<p>Java堆既可以被实现成固定大小的，也可以是可扩展的，不多当前主流的Java虚拟机都是按照可扩展来实现的（通过参数-Xmx和-Xms设定）。如果在Java堆中没有内存完成实例分配，并且堆也无法再扩展时，Java虚拟机将会抛出OutOfMemoryError异常。</p>
+<h3 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h3><p>方法区（Method Area）与Java堆一样，是各个线程共享的内存区域，它用于存储已经被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码缓存等数据。虽然Java虚拟机规范中把方法区描述为堆的一个逻辑部分，它还有一个别名叫做“非堆”（Non-Heap），目的是与Java堆区分开来。</p>
+<p>说到方法区，不得不提以下“永久代”这个概念，尤其是在JDK 8以前，很多人把方法区和永久代混为一谈。当时仅仅HotSpot虚拟机选择把收集器的分代设计扩展至方法区，或者说使用永久代来实现方法区而已。对于其他虚拟机实现（譬如IBM J9）是不存在永久代概念的。</p>
+<p>Java虚拟机规范对方法区的约束是非常宽松的，除了和Java堆一样不需要连续的内存空间和可以选择固定大小或者可扩展外，甚至还可以选择不实现垃圾收集。相对而言，垃圾收集行为在这个区域的确实比较少出现的，但并非数据进入了方法区就如永久代的名字一样“永久”存在。这个区域的内存回收目标主要是针对常量池的回收和对类型的卸载，一般来说这个区域的回收效果比较难令人满意，尤其是类型的卸载，条件非常苛刻，但是这部分区域的回收有时又确实是必要的。以前Sun公司的Bug列表中，曾出现过的若干个严重的Bug就是由于低版本的HotSpot虚拟机对此区域未完全回收而导致内存泄漏。</p>
+<p>根据Java虚拟机规范的规定，如果方法区无法满足新的内存分配需求时，将抛出<code>OutOfMemoryError</code>异常。</p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>运行时常量池（Runtime Constant Pool）是方法区的一部分。Class文件中除了有类的版本、字段、方法、接口等描述信息外，还有一项信息就是常量池表（Constant Pool Table），用于存放编译期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。</p>
+<p>运行时常量池相对于Class文件常量池的另一个重要特征是具备动态性，Java语言并不要求常量一定只有编译期才能产生，也就是说，并非预置入Class文件中常量池的内容才能进入方法区运行时常量池，运行期间也可以将新的常量放入池中，这种特性被开发人员利用的比较多的便是String类的<code>intern()</code>方法。</p>
+<p>既然运行时常量池是方法区的一部分，自然受到方法区内存的限制，当常量池无法再申请到内存时会抛出<code>OutOfMemoryError</code>异常。</p>
+<h3 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h3><p>直接内存（Direct Memory）并不是虚拟机运行时数据区的一部分，也不是Java虚拟机规范中定义的内存区域。但是这个部分内存也被频繁的使用，而且也可能导致OutOfMemoryError异常出现。</p>
+<p>在JDK 1.4中新加入了NIO（New Input&#x2F;Output）类，引入了一种基于通道（Channel）与缓冲区（Buffer）的I&#x2F;O方式，它可以使用Native函数库直接分配堆外内存，然后通过一个存储在Java堆里面的DirectByteBuffer对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在Java堆和Native堆中来回复制数据。</p>
+<p>显然，本机直接内存的分配不会收到Java堆大小的限制，但是受本机总内存（包括物理内存、SWAP分区或者分页文件）大小以及处理器寻址空间的限制，一般服务器管理员配置虚拟机参数时，会根据实际内存区设置-Xmx等参数信息，但经常忽略直接内存，是的各个内存区域总和大于物理内存限制（包括物理内存和操作系统内存的限制），从而导致动态扩展时出现<code>OutOfMemoryError</code>异常。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2021/07/15/java/" data-id="clu1a7ilo000ax7g0fu859np3" data-title="一文读懂Java" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/" rel="tag">java</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/21/Storage/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          一文读懂分布式存储
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/08/30/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/03/21/aws/">AWS 服务介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/git-svn/">git-svn</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/21/Storage/">一文读懂分布式存储</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 牛古<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

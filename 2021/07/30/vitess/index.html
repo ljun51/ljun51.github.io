@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一文读懂Vitess | 牛古说</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="概述什么是VitessVitess是一个为部署、扩展、管理大型集群的开源数据库解决方案。当前支持MySQL和MariaDB。在专用硬件上为高效的运行公有、私有云架构而设计。Vitess结合并扩展了许多重要的SQL功能和NoSQL数据库的可扩展性。Vitess可以解决下面的问题：  通过对SQL数据库进行分片来扩展SQ 数据库，同时将应用程序更改保持在最低限度。 支持从裸机部署到共有或私有云。 支持">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文读懂Vitess">
+<meta property="og:url" content="https://ljun51.github.io/2021/07/30/vitess/index.html">
+<meta property="og:site_name" content="牛古说">
+<meta property="og:description" content="概述什么是VitessVitess是一个为部署、扩展、管理大型集群的开源数据库解决方案。当前支持MySQL和MariaDB。在专用硬件上为高效的运行公有、私有云架构而设计。Vitess结合并扩展了许多重要的SQL功能和NoSQL数据库的可扩展性。Vitess可以解决下面的问题：  通过对SQL数据库进行分片来扩展SQ 数据库，同时将应用程序更改保持在最低限度。 支持从裸机部署到共有或私有云。 支持">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gt3kw5e4e9j310m0k43z5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gt73e2yso2j30ll0gqwer.jpg">
+<meta property="article:published_time" content="2021-07-30T02:26:37.000Z">
+<meta property="article:modified_time" content="2024-03-21T13:33:53.016Z">
+<meta property="article:author" content="牛古">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gt3kw5e4e9j310m0k43z5.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="牛古说" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">牛古说</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">不动笔墨不读书。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ljun51.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-vitess" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/30/vitess/" class="article-date">
+  <time class="dt-published" datetime="2021-07-30T02:26:37.000Z" itemprop="datePublished">2021-07-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一文读懂Vitess
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><h2 id="什么是Vitess"><a href="#什么是Vitess" class="headerlink" title="什么是Vitess"></a>什么是Vitess</h2><p>Vitess是一个为部署、扩展、管理大型集群的开源数据库解决方案。当前支持MySQL和MariaDB。在专用硬件上为高效的运行公有、私有云架构而设计。Vitess结合并扩展了许多重要的SQL功能和NoSQL数据库的可扩展性。Vitess可以解决下面的问题：</p>
+<ol>
+<li>通过对SQL数据库进行分片来扩展SQ 数据库，同时将应用程序更改保持在最低限度。</li>
+<li>支持从裸机部署到共有或私有云。</li>
+<li>支持部署和管理大量的SQL实例。</li>
+</ol>
+<p>Vitess支持JDBC和Go数据库驱动使用native查询协议。此外，它实现了几乎与任何其他语言兼容的MySQL server协议。</p>
+<p>Vitess在YouTube使用超过5年，许多企业也考虑在生产环境Vitess。</p>
+<h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><p><strong>性能</strong></p>
+<ul>
+<li>Connection pooling: 将前端应用程序查询多路复用到 MySQL 连接池以优化性能。</li>
+<li>Query de-duping: 对于重复的查询请求，重用结果。</li>
+<li>Transaction Manager: 限制并发事务的数量并管理超时，优化整体吞吐量。</li>
+</ul>
+<p><strong>保护</strong></p>
+<ul>
+<li>Query rewriting and sanitization: 添加限制并避免非确定性更新。</li>
+<li>Query blacklisting: 自定义规则，防止有问题的查询攻击数据库</li>
+<li>Query killer: 中断长时间的查询</li>
+<li>Table ACLs: 对数据表指定访问控制列表</li>
+</ul>
+<p><strong>监控</strong></p>
+<ul>
+<li>性能分析工具帮助你监控、诊断、分析数据库性能</li>
+</ul>
+<p><strong>拓扑管理工具</strong></p>
+<ul>
+<li>Master管理工具</li>
+<li>基于Web的GUI</li>
+<li>支持管理多数据中心</li>
+</ul>
+<p><strong>分片</strong></p>
+<ul>
+<li>几乎无缝的动态重新分片</li>
+<li>支持水平、垂直分片</li>
+<li>多种分片方案，支持自定义实现</li>
+</ul>
+<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><p>Vitess平台由许多服务器进程、命令行工具和Web工具组成，并由一致的元数据存储提供支持。</p>
+<p>通过一系列流程可以实现一个完整的Vitess。比如，如果要从头开始构建服务，那么使用 Vitess 的第一步就是定义数据库拓扑。但是，如果需要扩展现有数据库，可能会从部署连接代理开始。</p>
+<p>Vitess的工具或服务可以提供帮助，无论是从一开始快速开始就创建一个完整的数据或是一步一步从小处着手。往小处讲，vttablet的连接池和查询重新特性可以让你体验到它的好处；往大处说，Vitess的自动化工具可以提供快速创建一个数据库。</p>
+<p>下面的图展示了Vitess的组件：<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gt3kw5e4e9j310m0k43z5.jpg" alt="Vitess Runtime"></p>
+<h2 id="支持的数据库"><a href="#支持的数据库" class="headerlink" title="支持的数据库"></a>支持的数据库</h2><p>Vitess当前支持MySQL、Percona和MariaDB数据库。</p>
+<p><strong>MySQL 5.6-8.0</strong></p>
+<p>Vitess支持MySQL 5.6-8.0的关键特性，但是也有一些限制。Vitess同样支持Percona Server for MySQL 5.6-8.0版本。MySQL 5.6在2021年2月不再维护，建议使用MySQL 5.7及以上版本。</p>
+<p><strong>MariaDB 10.0-10.3</strong></p>
+<p>Vitess支持MariaDB 10.0-10.3的关键特性，暂不支持10.4版本。</p>
+<h2 id="可扩展性理念"><a href="#可扩展性理念" class="headerlink" title="可扩展性理念"></a>可扩展性理念</h2><p>许多方式都可以解决扩展性问题，下面看看Vitess是怎么做的：</p>
+<p><strong>小实例</strong></p>
+<p>一般数据库要分片，自然想到的就是适合一台物理机的大小的分片。通常做法是一台物理机一个实例。</p>
+<p>Vitess 建议将实例分解为可管理的块（每个 MySQL 服务器 250GB），并且不回避在每个主机上运行多个实例。净资源使用量将大致相同。但是当 MySQL 实例较小时，可管理性大大提高。跟踪端口和分离 MySQL 实例的路径很复杂。然而，一旦跨越了这个障碍，其他一切都会变得更简单。</p>
+<p>需要担心的是会有锁竞争，复制会更频繁；但中断对生产的影响变得更小，备份和恢复运行得更快，并且可以实现更多次要优势。例如，您可以对实例进行混洗以获得更好的机器或机架多样性，从而减少对生产中断的影响，并提高资源使用率。</p>
+<p><strong>通过复制获得持久性</strong></p>
+<p>传统数据存储软件在数据刷新到磁盘后立即将其视为持久数据。然而，这种方法在当今的商品硬件世界中是不切实际的。这种方法也不能解决灾难场景。</p>
+<p>新的持久性方法是通过将数据复制到多台机器甚至地理位置来实现的。这种形式的持久性解决了设备故障和灾难的现代问题。</p>
+<p>Vitess 中的许多工作流都是用这种方法构建的。例如，强烈建议开启半同步复制。这允许 Vitess 在 master 宕机时故障转移到新副本，而不会丢失数据。 Vitess 还建议避免恢复崩溃的数据库。而是从最近的备份中创建一个新的并让它赶上。</p>
+<p>依靠复制还允许您放宽一些基于磁盘的持久性设置。例如，您可以关闭sync_binlog，这将大大减少对磁盘的IOPS数，从而提高有效吞吐量。</p>
+<p><strong>一致性模型</strong></p>
+<p>在将表分片或移动到不同的键空间之前，需要验证（或更改）应用程序，以便它可以容忍以下更改：</p>
+<ul>
+<li>跨分片读取可能彼此不一致。相反，分片决策也应尽量减少此类事件的发生，因为跨分片读取的成本更高。</li>
+<li>在<code>best-effort mode</code>模式下，跨分片事务可能会在中间失败并导致部分提交。您可以改为使用<code>2PC mode</code>事务，提供分布式原子保证。但是，选择此选项会使写入成本增加约 50%。</li>
+</ul>
+<p>单个分片事务仍然保持 ACID。</p>
+<p>如果可以容忍轻微陈旧数据的只读情况，则应将查询发送到用于 OLTP 的 REPLICA 片，以及用于 OLAP 工作负载的 RDONLY 片。这可以更轻松地扩展读流量，并使您能够在地理上分布它们。</p>
+<p>这种权衡允许以过时或可能不一致的读取为代价获得更好的吞吐量，因为随着数据的变化（并且可能在不同分片上具有不同的延迟），读取可能落后于 MASTER 服务器。为了缓解这种情况，VTGate 服务器能够监控副本滞后，并且可以配置为避免副本滞后超过 X 秒的数据。</p>
+<p>对于真正的快照，必须在事务中将查询发送到 master。对于<code>read-after-write</code>一致性，在没有事务的情况下从 master 读取就足够了。</p>
+<p>总而言之，支持的各种等级的一致性：</p>
+<ul>
+<li>__REPLICA&#x2F;RDONLY read__：服务器可以在地理上扩展。本地读取速度很快，但可能会因副本滞后而过时。</li>
+<li>__MASTER read__：每个分片只有一个Master。来自远程位置的读取将受到网络延迟和可靠性的影响，但数据将是最新的（<code>read-after-write</code>一致性）。隔离级别为 READ_COMMITTED。</li>
+<li>__MASTER transactions__：它们表现出与<code>MASTER read</code>相同的属性。但是，对于单个分片，您可以获得 REPEATABLE_READ 一致性和 ACID 写入。对跨分片原子交易的支持正在进行中。</li>
+</ul>
+<p>至于原子性，支持以下级别：</p>
+<ul>
+<li>__SINGLE__：禁止多数据库事务。</li>
+<li>__MULTI__：尽最而为的多数据库事务。</li>
+<li>__TWOPC__：具有 2PC 提交的多数据库事务。</li>
+</ul>
+<p><strong>不支持多主（Master）</strong></p>
+<p>Vitess 不支持多主配置。它具有解决大多数通常由多主解决的用例的替代方法：</p>
+<ul>
+<li>可扩展性：在某些情况下，多Master会为您提供一些额外的运行方式。但是，由于这些语句最终必须应用于所有Master，因此这不是一个可持续的策略。 Vitess 通过分片解决了这个问题，分片可以无限扩展。</li>
+<li>高可用性：Vitess 与 Orchestrator 集成，能够在检测到故障后几秒钟内执行故障转移到新主服务器。这对于大多数应用程序来说通常是足够的。</li>
+<li>低延迟地理分布式写入：这是 Vitess 未解决的一种情况。当前的建议是避免长距离往返的延迟成本的写入。如果数据分布允许，您仍然可以选择基于地理亲和力进行分片。然后，您可以为不同的分片设置主节点，使其位于不同的地理位置。这样，大多数 master 写入仍然可以是本地的。</li>
+</ul>
+<p><strong>多cell</strong></p>
+<p>Vitess 旨在在多个数据中心&#x2F;区域&#x2F;单元中运行。在这里，我们将使用<code>Cell</code>来表示一组非常接近的服务器，并共享相同的区域可用性。</p>
+<p>一个 cell 通常包含一组 tablet、一个 vtgate 池和使用 Vitess 集群的应用服务器。使用 Vitess 可以根据需要配置和启动所有组件：</p>
+<ul>
+<li>分片的主节点可以在任何 cell 中。如果需要cross-cell master 访问，可以通过 vtgate 轻松配置（通过将包含 master 的 cell 作为要监视的单元传递）。</li>
+<li>master cell比read-only cell配置得更多的情况也不少见。这些具有master-capable的单元可能需要一个更多的副本来处理可能的故障转移，同时仍保持相同的副本服务容量。</li>
+<li>从一个cell中的主节点故障转移到不同cell中的主节点与本地故障转移没有区别。它对流量和延迟有影响，但如果应用流量也被重定向到新cell，最终结果是稳定的。</li>
+<li>也可以有一些分片与master在一个cell中，而其他一些分片与其他master在另一个cell中。vtgate 只会将流量路由到正确的位置，仅在远程访问时会产生额外的延迟成本。例如，在拥有美国的master数据库中创建美国用户记录，在欧洲master的数据库中创建欧洲用户记录很容易做到。副本无论如何都可以存在于每个cell中，并快速为副本流量提供服务。</li>
+<li>副本服务单元是减少用户可见延迟的一个很好的折衷方案：它们只包含副本服务器，并且master访问始终是远程完成的。如果应用程序的主要场景是读取，这非常有效。</li>
+<li>并非所有cell都需要 rdonly（或批处理）实例。只有运行批处理作业或 OLAP 作业的cell才真正需要。</li>
+</ul>
+<p>注意 Vitess 首先使用本地cell数据，并且对于任何cell宕机都非常有弹性，Vitess的大多数进程都会优雅地处理这种情况。</p>
+<h2 id="Cloud-Native"><a href="#Cloud-Native" class="headerlink" title="Cloud Native"></a>Cloud Native</h2><p>Vitess 非常适合云部署，因为它使数据库能够逐步增加容量。 运行 Vitess 的最简单方法是通过 Kubernetes。</p>
+<p>Kubernetes 可以使用 Docker 容器编排系统，Vitess 可以感知 Kubernetes 云原生环境运行分布式数据库。</p>
+<p>Kubernetes 处理计算集群中节点的调度，主动管理这些节点上的工作负载，并将包含应用程序的容器分组以便于管理和发现。这为 Vitess 在 YouTube 中运行的方式提供了一个类似的开源环境，这也是 Kubernetes 的前身。</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><p>Vitess 创建于 2010 年，旨在解决 YouTube 团队面临的 MySQL 可扩展性挑战。本节简要总结了 Vitess 发展的一系列事件：</p>
+<ol>
+<li>YouTube 的 MySQL 数据库达到了高峰流量并将很快超过数据库服务能力的地步。为了暂时缓解这个问题，YouTube 创建了一个用于写入流量的主数据库和一个用于读取流量的副本数据库。</li>
+<li>由于对视频的需求空前高涨，只读流量仍然使副本数据库过载。所以 YouTube 增加了更多的副本，再次提供了一个临时解决方案。</li>
+<li>最终，写入流量变得太高，主数据库无法处理，需要 YouTube 对数据进行分片来处理传入流量。顺便说一句，如果数据库的整体大小对于单个 MySQL 实例来说变得太大，分片也将变得必要。</li>
+<li>YouTube 的应用层经过修改，以便在执行任何数据库操作之前，代码可以识别正确的数据库分片以接收特定查询。</li>
+</ol>
+<p>Vitess 让 YouTube 从源代码中删除了该逻辑，在应用程序和数据库之间引入了一个代理来路由和管理数据库交互。从那时起，YouTube 将其用户群扩大了 50 多倍，大大提高了其访问页面、处理新上传视频等的能力。更重要的是，Vitess 是一个不断扩展的平台。</p>
+<p>CNCF 是许多快速增长的开源项目的中立供应商。2018 年 2 月，技术监督委员会 (TOC) 投票接受 Vitess 作为 CNCF 孵化项目。 Vitess 成为 2019 年 11 月毕业的第八个 CNCF 项目，加入了 Kubernetes、Prometheus、Envoy、CoreDNS、containerd、Fluentd 和 Jaeger的 CNCF。</p>
+<h1 id="开始"><a href="#开始" class="headerlink" title="开始"></a>开始</h1><h2 id="通过Docker本地安装"><a href="#通过Docker本地安装" class="headerlink" title="通过Docker本地安装"></a>通过Docker本地安装</h2><p>本指南说明了如何通过 Docker 运行本地 Vitess 测试环境。 Vitess 环境与本地安装相同，除了 Docker 无需安装其他软件。</p>
+<h3 id="检出仓库"><a href="#检出仓库" class="headerlink" title="检出仓库"></a>检出仓库</h3><ul>
+<li><p>SSH：<code>git clone git@github.com:vitessio/vitess.git</code>，或者：</p>
+</li>
+<li><p>HTTP：<code>git clone https://github.com/vitessio/vitess.git</code></p>
+<p>  cd vitess</p>
+</li>
+</ul>
+<h3 id="构建docker镜像"><a href="#构建docker镜像" class="headerlink" title="构建docker镜像"></a>构建docker镜像</h3><pre><code>make docker_local
+</code></pre>
+<p>将创建一个名为<code>vitess/local</code>的docker镜像（<code>vitess/local:lateest</code>)</p>
+<h3 id="运行docker镜像"><a href="#运行docker镜像" class="headerlink" title="运行docker镜像"></a>运行docker镜像</h3><pre><code>./docker/local/run.sh
+</code></pre>
+<p>这一步将安装 MySQL replication拓扑，以及 <code>etcd</code>、<code>vtctld</code> 和 <code>vtgate</code> 服务。</p>
+<ul>
+<li><code>vtgate</code> 监听 <a target="_blank" rel="noopener" href="http://127.0.0.1:15001/debug/status">http://127.0.0.1:15001/debug/status</a></li>
+<li><code>vtctld</code> 监听 <a target="_blank" rel="noopener" href="http://127.0.0.1:15000/debug/status">http://127.0.0.1:15000/debug/status</a></li>
+<li>控制面板通过 <a target="_blank" rel="noopener" href="http://localhost:15000/app/">http://localhost:15000/app/</a> 访问</li>
+</ul>
+<p>为方便起见，在 docker shell 中设置了别名。尝试使用以下 <code>mysql</code> 命令连接到各种 tablets：</p>
+<ul>
+<li><code>mysql commerce</code></li>
+<li><code>mysql commerce@master</code></li>
+<li><code>mysql commerce@replica</code></li>
+<li><code>mysql commerce@rdonly</code></li>
+</ul>
+<p>你会发现 Vitess 运行在一个单keyspace、单分片的集群。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在这个例子中，我们部署了一个名为 <code>commerce</code> 的未分片的keyspace。未分片的keyspace有一个名为 <code>0</code> 的分片。以下schema反映了由脚本创建的常见电子商务场景：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> product (</span><br><span class="line">  sku <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  description <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  price <span class="type">bigint</span>,</span><br><span class="line">  <span class="keyword">primary</span> key(sku)</span><br><span class="line">);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customer (</span><br><span class="line">  customer_id <span class="type">bigint</span> <span class="keyword">not</span> <span class="keyword">null</span> auto_increment,</span><br><span class="line">  email <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  <span class="keyword">primary</span> key(customer_id)</span><br><span class="line">);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> corder (</span><br><span class="line">  order_id <span class="type">bigint</span> <span class="keyword">not</span> <span class="keyword">null</span> auto_increment,</span><br><span class="line">  customer_id <span class="type">bigint</span>,</span><br><span class="line">  sku <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  price <span class="type">bigint</span>,</span><br><span class="line">  <span class="keyword">primary</span> key(order_id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>上面的schema仅仅列出比较重要的属性：</p>
+<ul>
+<li><code>product</code> 表包含所有产品的产品信息。</li>
+<li><code>customer</code> 表有一个 auto_increment 的<code>customer_id</code>列，一个典型的customer表包含很多列，甚至还包含扩展表。</li>
+<li><code>corder</code> 表（应该命名为order，因为和SQL关键字冲突）有一个 auto_increment 的<code>order_id</code>列，同时有两个外键<code>customer(customer_id)</code>和<code>product(sku)</code>。</li>
+</ul>
+<h2 id="本地安装"><a href="#本地安装" class="headerlink" title="本地安装"></a>本地安装</h2><h2 id="通过Homebrew本地安装"><a href="#通过Homebrew本地安装" class="headerlink" title="通过Homebrew本地安装"></a>通过Homebrew本地安装</h2><h2 id="Vitess-Operator-for-Kubernetes"><a href="#Vitess-Operator-for-Kubernetes" class="headerlink" title="Vitess Operator for Kubernetes"></a>Vitess Operator for Kubernetes</h2><p>PlanetScale 为 Kubernetes 提供了一个 Vitess Operator，在 Apache 2.0 许可下发布。 以下步骤显示了如何开始使用 Minikube 安装：</p>
+<h3 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h3><p>在开始之前，需要准备 Kubernetes环境：</p>
+<ol>
+<li><p>安装 Minikube 并启动 Minikube，推荐使用1.14版本，方便跨公有云：</p>
+<p> minikube start –kubernetes-version&#x3D;v1.14.10 –cpus&#x3D;8 –memory&#x3D;11000 –disk-size&#x3D;50g</p>
+</li>
+</ol>
+<p>如果你没有一台有 11GB 内存的机器，也可以考虑使用 GKE 来代替。可以使用以下命令从 Cloud Shell 部署等效设置：</p>
+<pre><code>gcloud container clusters create vitess --cluster-version 1.14 --zone us-east1-b --num-nodes 5
+</code></pre>
+<ol start="2">
+<li><p>安装 kubectl 并确保在<code>PATH</code>下。比如，Linux下：</p>
+<p> curl -LO <a target="_blank" rel="noopener" href="https://storage.googleapis.com/kubernetes-release/release/v1.14.9/bin/linux/amd64/kubectl">https://storage.googleapis.com/kubernetes-release/release/v1.14.9/bin/linux/amd64/kubectl</a></p>
+</li>
+<li><p>本地安装 MySQL 客户端。比如，Ubuntu下：</p>
+<p> apt install mysql-client</p>
+</li>
+<li><p>本地安装 vtctlclient ：</p>
+</li>
+</ol>
+<p>如果熟悉 GO 开发环境，最简单的方式是：</p>
+<pre><code>go get vitess.io/vitess/go/cmd/vtctlclient
+</code></pre>
+<p>如果没有，可以下载最新的 Vitess 版本并从中提取 vtctlclient。</p>
+<h3 id="安装-Operator"><a href="#安装-Operator" class="headerlink" title="安装 Operator"></a>安装 Operator</h3><p>切换到operator example目录下：</p>
+<pre><code>git clone git@github.com:vitessio/vitess.git
+cd vitess/examples/operator
+</code></pre>
+<p>安装operator：</p>
+<pre><code>kubectl apply -f operator.yaml
+</code></pre>
+<h3 id="初始化集群"><a href="#初始化集群" class="headerlink" title="初始化集群"></a>初始化集群</h3><p>在此目录中，您将看到一组 yaml 文件。每个文件名的第一位数字表示示例的阶段。接下来的两位数字表示执行它们的顺序。例如，101_initial_cluster.yaml 是第一阶段的第一个文件。现在将执行：</p>
+<pre><code>kubectl apply -f 101_initial_cluster.yaml
+</code></pre>
+<blockquote>
+<p>我们提供了一个示例 yaml，用于使用实验性 <code>vtorc</code> 组件启动 Vitess。您可以使用以下命令进行尝试：<code>kubectl apply -f vtorc_example.yaml</code>。一旦 vtorc 正式发布，示例将相应更新。</p>
+</blockquote>
+<h3 id="验证集群"><a href="#验证集群" class="headerlink" title="验证集群"></a>验证集群</h3><p>可以使用 <code>kubectl get pods</code> 检查集群的状态。几分钟后，它应该显示所有 Pod 都处于运行状态：</p>
+<pre><code>$ kubectl get pods
+NAME                                             READY   STATUS    RESTARTS   AGE
+example-etcd-faf13de3-1                          1/1     Running   0          78s
+example-etcd-faf13de3-2                          1/1     Running   0          78s
+example-etcd-faf13de3-3                          1/1     Running   0          78s
+example-vttablet-zone1-2469782763-bfadd780       3/3     Running   1          78s
+example-vttablet-zone1-2548885007-46a852d0       3/3     Running   1          78s
+example-zone1-vtctld-1d4dcad0-59d8498459-kwz6b   1/1     Running   2          78s
+example-zone1-vtgate-bc6cde92-6bd99c6888-vwcj5   1/1     Running   2          78s
+vitess-operator-8454d86687-4wfnc                 1/1     Running   0          2m29s
+</code></pre>
+<h3 id="设置-Port-forward"><a href="#设置-Port-forward" class="headerlink" title="设置 Port-forward"></a>设置 Port-forward</h3><blockquote>
+<p>port-forward 只会转发到特定的 pod。目前，由于应用&#x2F;升级操作导致 pod 消失，<code>kubectl</code> 不会自动终止端口转发。需要手动重新配置端口转发。</p>
+</blockquote>
+<p>为了方便使用，Vitess 提供了一个脚本来将 Kubernetes 端口转发到您的本地机器。此脚本还建议为 <code>mysql</code> 和 <code>vtctlclient</code> 设置别名：</p>
+<pre><code>./pf.sh &amp;
+alias vtctlclient=&quot;vtctlclient -server=localhost:15999&quot;
+alias mysql=&quot;mysql -h 127.0.0.1 -P 15306 -u user&quot;
+</code></pre>
+<p>设置别名将 <code>mysql</code> 更改为始终连接到 Vitess 以进行当前会话。要还原这个，输入 <code>unalias mysql &amp;&amp; unalias vtctlclient</code> 或关闭会话。</p>
+<h3 id="创建-Schema"><a href="#创建-Schema" class="headerlink" title="创建 Schema"></a>创建 Schema</h3><p>载入初始化schema：</p>
+<pre><code>vtctlclient ApplySchema -sql=&quot;$(cat create_commerce_schema.sql)&quot; commerce
+vtctlclient ApplyVSchema -vschema=&quot;$(cat vschema_commerce_initial.json)&quot; commerce
+</code></pre>
+<h3 id="连接到集群"><a href="#连接到集群" class="headerlink" title="连接到集群"></a>连接到集群</h3><p>现在应该能够使用 MySQL 客户端连接到集群中的 VTGate 服务器：</p>
+<pre><code>~/vitess/examples/operator$ mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 3
+Server version: 5.7.9-Vitess MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type &#39;help;&#39; or &#39;\h&#39; for help. Type &#39;\c&#39; to clear the current input statement.
+
+mysql&gt; show databases;
++-----------+
+| Databases |
++-----------+
+| commerce  |
++-----------+
+1 row in set (0.00 sec)
+</code></pre>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>在这个例子中，我们部署了一个名为 <code>commerce</code> 的未分片的keyspace。未分片的keyspace有一个名为 <code>0</code> 的分片。以下schema反映了由脚本创建的常见电子商务场景：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> product (</span><br><span class="line">  sku <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  description <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  price <span class="type">bigint</span>,</span><br><span class="line">  <span class="keyword">primary</span> key(sku)</span><br><span class="line">);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customer (</span><br><span class="line">  customer_id <span class="type">bigint</span> <span class="keyword">not</span> <span class="keyword">null</span> auto_increment,</span><br><span class="line">  email <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  <span class="keyword">primary</span> key(customer_id)</span><br><span class="line">);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> corder (</span><br><span class="line">  order_id <span class="type">bigint</span> <span class="keyword">not</span> <span class="keyword">null</span> auto_increment,</span><br><span class="line">  customer_id <span class="type">bigint</span>,</span><br><span class="line">  sku <span class="type">varbinary</span>(<span class="number">128</span>),</span><br><span class="line">  price <span class="type">bigint</span>,</span><br><span class="line">  <span class="keyword">primary</span> key(order_id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>上面的schema仅仅列出比较重要的属性：</p>
+<ul>
+<li><code>product</code> 表包含所有产品的产品信息。</li>
+<li><code>customer</code> 表有一个 auto_increment 的<code>customer_id</code>列，一个典型的customer表包含很多列，甚至还包含扩展表。</li>
+<li><code>corder</code> 表（应该命名为order，因为和SQL关键字冲突）有一个 auto_increment 的<code>order_id</code>列，同时有两个外键<code>customer(customer_id)</code>和<code>product(sku)</code>。</li>
+</ul>
+<h3 id="删除集群"><a href="#删除集群" class="headerlink" title="删除集群"></a>删除集群</h3><pre><code>kubectl delete -f 101_initial_cluster.yaml
+</code></pre>
+<h2 id="Vttestserver-Docker镜像"><a href="#Vttestserver-Docker镜像" class="headerlink" title="Vttestserver Docker镜像"></a>Vttestserver Docker镜像</h2><p>本指南涵盖使用 vttestserver docker 映像进行测试。这也是我们在 Vitess Framewok Testing 中用来测试的 docker 镜像。</p>
+<h3 id="获取docker镜像"><a href="#获取docker镜像" class="headerlink" title="获取docker镜像"></a>获取docker镜像</h3><p>第一步是获取docker镜像，有两种方式获取：</p>
+<ol>
+<li>从vitessio&#x2F;vitess仓库获取</li>
+</ol>
+<h4 id="检出仓库-1"><a href="#检出仓库-1" class="headerlink" title="检出仓库"></a>检出仓库</h4><ul>
+<li><p>SSH：<code>git clone git@github.com:vitessio/vitess.git</code>，或者：</p>
+</li>
+<li><p>HTTP：<code>git clone https://github.com/vitessio/vitess.git</code></p>
+<p>  cd vitess</p>
+</li>
+</ul>
+<h4 id="构建docker镜像-1"><a href="#构建docker镜像-1" class="headerlink" title="构建docker镜像"></a>构建docker镜像</h4><pre><code>make docker_vttestserver
+</code></pre>
+<p>这将创建 2 个名为 <code>vitess/vttestserver:mysql57</code> 和 <code>vitess/vttestserver:mysql80</code> 的 docker 镜像。</p>
+<ol start="2">
+<li><p>从docker hub拉取<br>或者，您可以从 docker hub 获取最新的 docker 镜像。在 shell 中，执行：</p>
+<p> docker pull vitess&#x2F;vttestserver:mysql57<br> docker pull vitess&#x2F;vttestserver:mysql80</p>
+</li>
+</ol>
+<h3 id="运行docker镜像-1"><a href="#运行docker镜像-1" class="headerlink" title="运行docker镜像"></a>运行docker镜像</h3><p>此时，您应该有一个名为 <code>vitess/vttestserver:mysql57</code> 或 <code>vitess/vttestserver:mysql80</code> 的 docker 镜像。</p>
+<h4 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h4><p>docker 镜像需要设置一些环境变量才能正常运行。下表列出了所有可用的环境变量及其用法。</p>
+<table>
+<thead>
+<tr>
+<th>Environment variable</th>
+<th>Required</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>KEYSPACES</td>
+<td>yes</td>
+<td>Specifies the names of the keyspaces to be created as a comma separated value.</td>
+</tr>
+<tr>
+<td>NUM_SHARDS</td>
+<td>yes</td>
+<td>Specifies the number of shards in each keyspace. It is a comma separated value as well, read in conjunction with the KEYSPACES.</td>
+</tr>
+<tr>
+<td>PORT</td>
+<td>yes</td>
+<td>The starting of the port addresses that vitess will use to register its components like vtgate, etc.</td>
+</tr>
+<tr>
+<td>MYSQL_MAX_CONNECTIONS</td>
+<td>no</td>
+<td>Maximum number of connections that the MySQL instance will support. If unspecified, it defaults to 1000.</td>
+</tr>
+<tr>
+<td>MYSQL_BIND_HOST</td>
+<td>no</td>
+<td>Which host to bind the MySQL listener to. If unspecified, it defaults to 127.0.0.1.</td>
+</tr>
+<tr>
+<td>MYSQL_SERVER_VERSION</td>
+<td>no</td>
+<td>MySQL server version to advertise. If unspecified, it defaults to 8.0.21-vitess or 5.7.9-vitess according to the version of vttestserver run.</td>
+</tr>
+<tr>
+<td>CHARSET</td>
+<td>no</td>
+<td>Default charset to use. If unspecified, it defaults to utf8mb4.</td>
+</tr>
+<tr>
+<td>FOREIGN_KEY_MODE</td>
+<td>no</td>
+<td>This is to provide how to handle foreign key constraint in create&#x2F;alter table. Valid values are: allow (default), disallow.</td>
+</tr>
+<tr>
+<td>ENABLE_ONLINE_DDL</td>
+<td>no</td>
+<td>Allow users to submit, review and control Online DDL. Valid values are: true (default), false.</td>
+</tr>
+<tr>
+<td>ENABLE_DIRECT_DDL</td>
+<td>no</td>
+<td>Allow users to submit direct DDL statements. Valid values are: true (default), false.</td>
+</tr>
+</tbody></table>
+<p>在docker环境变量可以通过 <code>-e</code> 或 <code>--env</code> 指定。</p>
+<h4 id="从外面发生请求给-vttestserver"><a href="#从外面发生请求给-vttestserver" class="headerlink" title="从外面发生请求给 vttestserver"></a>从外面发生请求给 vttestserver</h4><p>vtgate 在3个以上的 PORT 环境变量上侦听 MySQL 连接。即，如果您将 <code>PORT</code> 指定为 33574，则 vtgate 将在 33577 上监听连接，主机地址 <code>MYSQL_BIND_HOST</code> 默认为 localhost，但是这个端口将在 docker 容器端。要从 MySQL 客户端外部连接到 vtgate，还需要发布该端口并将 <code>MYSQL_BIND_HOST</code> 指定为 0.0.0.0，这可以通过 docker 的 <code>-p</code> 或 <code>--publish</code> 标志来完成。例如：将 -p 33577:33577 添加到 <code>docker run</code> 命令会将容器的 33577 端口发布到本地的 33577 端口，就可用于连接到 vtgate。</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>运行 docker 镜像的示例命令如下：</p>
+<pre><code>docker run --name=vttestserver -p 33577:33577 -e PORT=33574 -e KEYSPACES=test,unsharded -e NUM_SHARDS=2,1 -e MYSQL_MAX_CONNECTIONS=70000 -e MYSQL_BIND_HOST=0.0.0.0 --health-cmd=&quot;mysqladmin ping -h127.0.0.1 -P33577&quot; --health-interval=5s --health-timeout=2s --health-retries=5 vitess/vttestserver:mysql57
+</code></pre>
+<p>现在，可以从 MySQL 客户端连接到 vtgate，如下所示：</p>
+<pre><code>mysql --host 127.0.0.1 --port 33577 --user &quot;root&quot;
+</code></pre>
+<p>这里有 2 个可以使用的键空间，<code>test</code> 有2个分片，<code>unsharded</code> 有1个分片。</p>
+<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><h2 id="Cell"><a href="#Cell" class="headerlink" title="Cell"></a>Cell</h2><blockquote>
+<p>数据中心、可用区或计算资源组</p>
+</blockquote>
+<p>cell是一组服务器和网络基础设施并置在一个区域中，并与其他单元中的故障隔离。它通常是完整的数据中心或数据中心的子集，有时称为区域或可用性区域。 Vitess 可以优雅地处理cell-level故障，例如当一个cell断网时。</p>
+<p>Vitess 实现中的每个单元都有一个本地拓扑服务，该服务托管在该单元中。拓扑服务在其单元中包含有关 Vitess tablet的大部分信息。这使得一个单元能够被删除或重建。</p>
+<p>Vitess 限制数据和元数据的跨单元访问。虽然具有将读取流量路由到单个单元格的能力可能很有用，但 Vitess 目前仅支持来自本地单元格的读取流量。必要时，写入将跨单元进行，写入该分片的主节点所在的任何位置。</p>
+<h2 id="Execution-Plans"><a href="#Execution-Plans" class="headerlink" title="Execution Plans"></a>Execution Plans</h2><p>Vitess 在 VTGate 和 VTablet 层解析查询，以评估执行查询的最佳方法。这种评估称为查询计划，并产生查询执行计划。</p>
+<p>执行计划取决于查询和关联的 VSchema。 Vitess 规划策略的基本目标之一是将尽可能多的工作下推到底层 MySQL 实例。当这不可能时，Vitess 将使用从多个来源收集输入并合并结果以生成正确查询结果的计划。</p>
+<p><strong>评估模型</strong></p>
+<p>一个执行计划由操作符组成，每个操作符执行一个特定的工作。运算符组合成一个树状结构，代表整体执行计划。该计划将每个运算符表示为树中的一个节点。每个运算符将零或更多行作为输入，并产生零或更多行作为输出。这意味着一个操作符的输出成为下一个操作符的输入。连接树中两个分支的运算符组合来自两个传入流的输入并产生单个输出。</p>
+<p>执行计划的评估从树的叶节点开始。叶节点从 VTablet、拓扑服务中提取数据，并且在某些情况下还能够在本地评估表达式值。每个叶节点不会有来自其他算子的输入，并且将它们产生的任何节点通过管道传输到其父节点。然后，父节点将通过管道将节点传送到它们的父节点，一直到根节点。根节点产生查询的最终结果并将结果传递给用户。</p>
+<p><strong>观察执行计划</strong></p>
+<p>通过浏览 <code>/queryz</code> 端点，可以在 VTGate 级别观察缓存的执行计划。</p>
+<p>从 Vitess 6 开始，还可以使用 <code>EXPLAIN FORMAT=vitess &lt;query&gt;</code> 观察单个语句计划。</p>
+<h2 id="Keyspace"><a href="#Keyspace" class="headerlink" title="Keyspace"></a>Keyspace</h2><p>键空间是一个逻辑数据库。如果你使用分片，一个键空间映射到多个 MySQL 数据库；如果您不使用分片，键空间将直接映射到 MySQL 数据库名称。在任何一种情况下，从应用程序的角度来看，键空间都显示为单个数据库。</p>
+<p>从键空间读取数据就像从 MySQL 数据库读取数据。但是，根据读取操作的一致性要求，Vitess 可能会从主数据库或副本中获取数据。 通过将每个查询路由到适当的数据库，Vitess 允许您的代码像从单个 MySQL 数据库读取一样。</p>
+<h2 id="Keyspace-ID"><a href="#Keyspace-ID" class="headerlink" title="Keyspace ID"></a>Keyspace ID</h2><p>键空间 ID 是用于决定给定行所在的分片的值。基于范围的分片是指创建每个覆盖特定范围的键空间 ID 的分片。</p>
+<p>使用此技术意味着您可以通过用两个或更多新分片替换、拆分给定分片，这些新分片组合在一起以覆盖键空间 ID 的原始范围，而无需移动其他分片中的任何记录。</p>
+<p>键空间 ID 本身是使用数据中某些列的函数计算的，例如用户 ID。Vitess 允许您从各种函数（vindexes）中进行选择来执行此映射。这使您可以选择正确的方法来实现数据在分片之间的最佳分布。</p>
+<h2 id="MoveTables"><a href="#MoveTables" class="headerlink" title="MoveTables"></a>MoveTables</h2><p>MoveTables 是一种基于 VReplication 的新工作流。它使您能够在键空间之间重新定位表，从而在不停机的情况下重新定位物理 MySQL 实例。</p>
+<p><strong>识别候选表</strong></p>
+<p>建议将需要相互连接的表保留在同一键空间中，因此 MoveTables 操作的典型候选对象是一组逻辑上组合在一起或以其他方式隔离的表。</p>
+<p>如果您有多组表作为候选，最有意义的移动可能取决于您的环境的具体情况。例如，一个更大的表将需要更多的时间来移动，但移动之后你能够利用额外的或更新的硬件，这些硬件在你需要执行额外的操作（如分片）之前有更多的空间。</p>
+<p>同样，更新频率高的表也可能会增加移动时间。</p>
+<p><strong>对生产交通的影响</strong></p>
+<p>在内部，MoveTables 操作由表副本和对表所做的所有更改的订阅组成。Vitess 使用批处理来提高表复制和应用订阅更改的性能，更新率较低的表移动得更快。</p>
+<p>在主动移动过程中，数据是从副本而不是主服务器复制的。这有助于确保最小的生产流量影响。</p>
+<p>在 MoveTables 操作的 SwitchWrites 阶段，Vitess 可能暂时不可用。这种不可用性通常是几秒钟，取决于主服务器到副本的复制延迟。</p>
+<h2 id="Query-Rewriting"><a href="#Query-Rewriting" class="headerlink" title="Query Rewriting"></a>Query Rewriting</h2><p>Vitess 努力营造一种用户与单个数据库的单一连接的错觉。实际上，单个查询可能与多个数据库交互，也可能多个连接连接到同一数据库。在这里，我们将讨论 Vitess 的作用以及它对您的影响。</p>
+<p><strong>查询拆分</strong></p>
+<p>具有交叉分片连接的复杂查询可能需要首先从 vindex 查找表的 tablet 中获取信息。然后使用此信息查询两个不同的分片以获取更多数据，然后将传入的结果连接到用户接收的单个结果中。 MySQL 获取的查询通常只是原始查询的一部分，最终结果将在 vtgate 级别组装。</p>
+<p><strong>连接池</strong></p>
+<p>当 tablet 与 MySQL 执行查询时，它不会为每个用户使用专用连接，而是会在用户之间共享底层连接。这意味着在会话中存储任何状态都是不安全的，因为你不能确定它会继续在同一个连接上执行查询，你也不能确定这个连接以后是否会被其他用户使用。</p>
+<p><strong>用户定义变量</strong></p>
+<p>使用 MySQL 时，用户定义的变量在会话状态保持。可以使用 SET 为它们赋值：</p>
+<pre><code>SET @my_user_variable = &#39;foobar&#39;
+</code></pre>
+<p>可以使用 SELECT 进行查询：</p>
+<pre><code>&gt; SELECT @my_user_variable;
++-------------------+
+| @my_user_variable |
++-------------------+
+| foobar            |
++-------------------+
+</code></pre>
+<p>如果您针对 VTGate 执行这些查询，则第一个 SET 查询不会发送到 MySQL。而是在 VTGate 中进行计算，并且 VTGate 将为您保留此状态。第二个查询也没有发送下来。像这样的琐碎查询实际上完全在 VTGate 上执行。</p>
+<p>如果我们尝试需要来自 MySQL 的数据的更复杂的查询，VTGate 将在发送之前重写查询。 如果我们要写这样的东西：</p>
+<pre><code>WHERE col = @my_user_variable
+</code></pre>
+<p>MySQL看到的是：</p>
+<pre><code>WHERE col = &#39;foobar&#39;
+</code></pre>
+<p>这样，就不需要会话状态来计算 MySQL 中的查询。</p>
+<p><strong>服务器系统变量</strong></p>
+<p>用户可能还想更改 MySQL 公开的许多不同系统变量。Vitess 以四种不同方式之一处理系统变量：</p>
+<ul>
+<li>No op。对于某些设置，Vitess 会默默地忽略该设置。这适用于在分片设置中没有多大意义的系统变量，并且不会改变 MySQL 的行为。</li>
+<li>Check and fail if not already set。这些是不应更改的设置，但 Vitess 将允许 SET 语句尝试将变量设置为已经是的任何值。</li>
+<li>Not supported。对于这些设置，尝试更改它们总是会导致错误。</li>
+<li>Vitess aware。这些是改变 Vitess 行为的设置，不会发送到 MySQL</li>
+<li>Reserved connection。对于某些设置，允许设置它们是有意义的，但这也意味着我们不能为此用户使用共享连接。这意味着代表该用户完成的每个连接都需要首先设置这些系统变量，然后保持连接专用。连接池对 Vitess 的性能很重要，保留的连接不能被池化，所以这不应该是在 Vitess 上运行应用程序的正常方式。只需确保将全局变量设置为应用程序将设置的相同值，Vitess 就可以使用连接池。</li>
+</ul>
+<p>除此之外，Vitess 确保@@version 包含 MySQL 版本和 Vitess 版本，例如：<code>5.7.9-vitess-10.0.0-SNAPSHOT</code>。可以使用 vtgate 标志 <code>-mysql_server_version</code> 更改此值。</p>
+<p><strong>特殊功能</strong></p>
+<p>Vitess 可以处理一些特殊功能，而无需委托给 MySQL。</p>
+<ul>
+<li>DATABASE() - 键空间名称和基础数据库名称不必相等。Vitess 将重写这些调用以使用文本字符串作为键空间名称。（这也适用于同义词 SCHEMA()）</li>
+<li>ROW_COUNT() 和 FOUND_ROWS() - 这些函数返回上次查询影响&#x2F;返回的行数。因为这可能是在不同的连接上执行的，所以这些被重写为使用返回行数的文字值。</li>
+<li>LAST_INSERT_ID() - 与 FOUND_ROWS() 非常相似，我们不能相信这些函数调用的池化连接，因此它们在命中 MySQL 之前会被重写。</li>
+</ul>
+<h2 id="Replication-Graph"><a href="#Replication-Graph" class="headerlink" title="Replication Graph"></a>Replication Graph</h2><p>Replication Graph标识了主数据库与其各自副本之间的关系。在主故障转移期间，Replication Graph使 Vitess 能够将所有现有副本指向新指定的主数据库，以便复制可以继续。</p>
+<h2 id="Shard"><a href="#Shard" class="headerlink" title="Shard"></a>Shard</h2><p>shard 是 keyspace 的子集。一个键空间将始终包含一个或多个分片。一个分片通常包含一个 MySQL 主节点和潜在的多个 MySQL 副本。</p>
+<p>分片中的每个 MySQL 实例都具有相同的数据（如果忽略任何复制延迟）。副本可以提供只读流量（具有最终一致性保证）、执行长时间运行的数据分析查询或执行管理任务（备份、恢复、差异等）。</p>
+<p>未分片的键空间是只有一个分片的键空间。 Vitess 按照惯例将分片命名为 <code>0</code>（或有时 <code>-</code>）。分片时，一个键空间有 <code>N</code> 个不重叠数据的分片。一个键空间中的分片数量可以根据用例和负载特性而变化，一些 Vitess 用户在某些键空间中有数百个分片。</p>
+<p><strong>分片命名</strong></p>
+<p>分片名称具有以下特征：</p>
+<ul>
+<li>代表无符号整数空间中的一个范围，其中包括左边的数字，但不包括右边的数字。</li>
+<li>符号是十六进制的。</li>
+<li>它们左对齐，右填充零。</li>
+<li>一个 <code>-</code> 前缀意味着：任何小于右边值的意思。</li>
+<li>一个 <code>-</code> 后缀表示：任何大于或等于左边值的意思。</li>
+<li>普通 <code>-</code> 表示完整的键范围。</li>
+</ul>
+<p>因此：<code>-80</code> &#x3D;&#x3D; <code>00-80</code> &#x3D;&#x3D; <code>0000-8000</code> &#x3D;&#x3D; <code>000000-800000</code> &#x3D;&#x3D; <code>0000000000000000-8000000000000000</code></p>
+<p><code>80-</code> 与 <code>80-FF</code> 不等价。为什么呢？</p>
+<p><code>80-FF</code> &#x3D;&#x3D; <code>8000-FF00</code>。因此 <code>FFFF</code> 将超出 <code>80-FF</code> 范围。</p>
+<p><code>80-</code> 表示：任何大于或等于 <code>0x80</code></p>
+<p>散列类型 vindex 产生一个无符号的 64 位整数作为输出。这意味着所有小于 <code>0x8000000000000000</code> 的整数都将落入分片 <code>-80</code>。任何设置了最高位的数字将 &gt;&#x3D; <code>0x8000000000000000</code>，因此属于分片 <code>80-</code>。</p>
+<p>这种左对齐的方法允许您拥有任意长度的键空间 ID。因此最重要的位是左边的位。</p>
+<p>例如，一个 <code>md5</code> 哈希产生 16 个字节。这也可以用作键空间 ID。</p>
+<p>任意长度的 varbinary 也可以按原样映射到 keyspace id。这就是二进制 vindex 所做的。</p>
+<p><strong>重新分片</strong></p>
+<p>Vitess 支持重新分片，即在实时集群上更改分片的数量。这可以是将一个或多个分片拆分为更小的部分，或者将相邻的分片合并为更大的部分。</p>
+<p>在重新分片期间，源分片中的数据被复制到目标分片中，允许赶上复制，然后与原始分片进行比较以确保数据完整性。然后将实时服务基础设施转移到目标分片，并删除源分片。</p>
+<h2 id="Tablet"><a href="#Tablet" class="headerlink" title="Tablet"></a>Tablet</h2><p>一个tablet是一个mysqld进程和一个对应的vttablet进程的组合，通常运行在同一台机器上。每个tablet都被分配了一个tablet类型，它指定了它当前执行的角色。</p>
+<p>查询通过 VTGate 服务器路由到tablet。</p>
+<p><strong>tablet类型</strong></p>
+<ul>
+<li>master - 一个副本tablet，恰好当前是其分片的 MySQL master。</li>
+<li>replica - 有资格提升为主节点的 MySQL 副本。通常，这些副本作为候选者用于服务实时的、面向用户的请求（例如来自网站的前端）。</li>
+<li>rdonly - 无法提升为 master 的 MySQL 副本。通常，这些用于后台处理作业，例如备份、将数据转储到其他系统、大量分析查询、MapReduce 和重新分片。</li>
+<li>backup - 已在一致性快照处停止复制的tablet，因此它可以为其分片上传新备份。完成后，它将恢复复制并返回到以前的类型。</li>
+<li>restore - 启动时没有数据的tablet，并且正在从最新备份中恢复自身。完成后，它将在备份的 GTID 位置开始复制，并成为 replica 或 rdonly。</li>
+<li>drained - 由 Vitess 后台进程保留的tablet（例如用于重新分片的 rdonly tablet）。</li>
+</ul>
+<h2 id="Topology-Service"><a href="#Topology-Service" class="headerlink" title="Topology Service"></a>Topology Service</h2><blockquote>
+<p>也称为 TOPO 或 lock service</p>
+</blockquote>
+<p>拓扑服务是一组运行在不同服务器上的后端进程。这些服务器存储了拓扑数据并提供分布式锁定服务。</p>
+<p>Vitess 使用plug-in系统来支持存储拓扑数据的各种后端，前提是这些后端提供分布式、一致的键值存储。默认的拓扑服务插件是 etcd2。</p>
+<p>拓扑服务的存在有几个原因：</p>
+<ul>
+<li>它使tablet能够作为一个集群在它们之间进行协调。</li>
+<li>它使 Vitess 能够发现tablet，因此它知道将查询路由到哪里。</li>
+<li>它存储集群中许多不同服务器需要的数据库管理员提供的 Vitess 配置，并且必须在服务器重新启动期间保持不变。</li>
+</ul>
+<p>一个 Vitess 集群有一个全局拓扑服务，每个单元有一个本地拓扑服务。</p>
+<p><strong>全局拓扑</strong></p>
+<p>全局拓扑服务存储不经常更改的 Vitess 级别的数据。具体来说，它包含有关密钥空间和分片的数据以及每个分片的主tablet别名。</p>
+<p>全局拓扑用于一些操作，包括 reparenting 和 resharding。按照设计，全局拓扑服务的使用并不多。</p>
+<p>为了在任何单个单元发生故障时容灾，全局拓扑服务应该在多个单元中具有节点，以便在单元发生故障时维持仲裁。</p>
+<p><strong>本地拓扑</strong></p>
+<p>每个本地拓扑都包含与其自身单元相关的信息。具体来说，它包含有关单元格中tablet的数据、该单元的 keyspace graph 以及该单元的 replication graph。</p>
+<p>本地拓扑服务必须可供 Vitess 使用以发现tablet并在tablet往返时调整路由。但是，在稳定状态下提供查询服务的关键路径中不会调用拓扑服务。这意味着在拓扑暂时不可用期间仍会提供查询服务。</p>
+<h2 id="VSchema"><a href="#VSchema" class="headerlink" title="VSchema"></a>VSchema</h2><p>VSchema 允许您描述数据在键空间和分片中的组织方式。此信息用于路由查询，也用于重新分片操作。</p>
+<p>对于 Keyspace，您可以指定它是否被分片。对于sharded keyspace，您可以为每个表指定 vindexes 列表。</p>
+<p>Vitess 还支持序列生成器，可用于生成新的 id，其工作方式类似于 MySQL 自动增量列。 VSchema 允许您将table columns关联到sequence tables。如果没有为这样的列指定值，那么 VTGate 将使用sequence table为它生成一个新值。</p>
+<h2 id="VStream"><a href="#VStream" class="headerlink" title="VStream"></a>VStream</h2><p>VStream 是一种可通过 VTGate 访问的更改通知服务。 VStream 的目的是从 Vitess 集群的底层 MySQL 分片提供与 MySQL 二进制日志等效的信息。gRPC 客户端，包括 Vitess 组件，如 VTablets，可以订阅 VStream 以接收来自其他分片的更改事件。VStream从VTTablet实例上的一个或多个VStreamer实例拉取事件，后者又从底层MySQL实例的二进制日志拉取事件。这允许有效执行诸如 VReplication 之类的功能，其中订阅者可以从一个或多个 MySQL 实例分片的二进制日志中间接接收事件，然后将其应用于目标实例。用户可以利用 VStream 获取有关给定 Vitess 键空间、分片和位置的数据更改事件的详细信息。单个 VStream 还可以整合来自键空间中多个分片的更改事件，使其成为从 Vitess 数据存储向下游提供 CDC（Change Data Capture）过程的便捷工具。</p>
+<p>作为参考，请参考下图：<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gt73e2yso2j30ll0gqwer.jpg" alt="VStream"></p>
+<blockquote>
+<p>注意：VStream 不同于 VStreamer。前者位于VTGate，后者位于VTTablet。</p>
+</blockquote>
+<h2 id="vtctl"><a href="#vtctl" class="headerlink" title="vtctl"></a>vtctl</h2><p>vtctl 是一个命令行工具，用于管理 Vitess 集群。它可作为独立工具 (vtctl) 和客户端-服务器（vtctlclient 与 vtctld 结合使用）。建议使用客户端-服务器，因为它在远程使用客户端时提供了额外的安全层。</p>
+<p>使用 vtctl，您可以识别主数据库和副本数据库、创建表、启动故障转移、执行重新分片操作等。</p>
+<p>随着 vtctl 执行操作，拓扑服务会根据需要进行更新。其他 Vitess 服务器会观察这些变化并做出相应的反应。例如，如果您使用 vtctl 故障转移到新的 master 数据库，vtgate 会看到更改并将未来的写入操作定向到新的 master。</p>
+<h2 id="vtctld"><a href="#vtctld" class="headerlink" title="vtctld"></a>vtctld</h2><p>vtctld 是一个 HTTP 服务器，可让您浏览存储在拓扑服务中的信息。它对于故障排除或获取服务器及其当前状态的概览信息很有用。</p>
+<p>vtctld 还充当 vtctlclient 连接的服务器。</p>
+<h2 id="VTGate"><a href="#VTGate" class="headerlink" title="VTGate"></a>VTGate</h2><p>VTGate 是一个轻量级的代理服务器，它可以将流量路由到正确的 VTTablet 服务器并将合并的结果返回给客户端。它同时使用 MySQL 协议和 Vitess gRPC 协议。因此，您的应用程序可以像连接 MySQL 服务器一样连接到 VTGate。</p>
+<p>在将查询路由到适当的 VTablet 服务器时，VTGate 会考虑分片方案、所需的延迟以及表及其底层 MySQL 实例的可用性。</p>
+<h1 id="用户手册"><a href="#用户手册" class="headerlink" title="用户手册"></a>用户手册</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><h1 id="设计文档"><a href="#设计文档" class="headerlink" title="设计文档"></a>设计文档</h1><h1 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h1>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2021/07/30/vitess/" data-id="clu1a7ilu0016x7g08cuxgb0g" data-title="一文读懂Vitess" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/08/30/git-svn/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          git-svn
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/28/zgc/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">一文读懂ZGC</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/03/21/aws/">AWS 服务介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/git-svn/">git-svn</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/21/Storage/">一文读懂分布式存储</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 牛古<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
