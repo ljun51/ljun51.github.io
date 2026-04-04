@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？ | 老黎说</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="俗话说得好，“不动笔墨不读书”。最近我把自己关在书房里，啃完了 Go 官方关于 1.26 版本类型检查器（Type Checker）重构的技术深度报告。 不知道各位小伙伴在写代码时，有没有遇到过一种让人抓狂的报错：“initialization cycle” 或者 “invalid recursive type”？你本想写一个优雅的递归结构，结果 Go 编译器直接给你甩了个冷脸。 今天，咱们就聊聊">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？">
+<meta property="og:url" content="https://ljun51.github.io/2026/04/04/type-construction-and-cycle-detection/index.html">
+<meta property="og:site_name" content="老黎说">
+<meta property="og:description" content="俗话说得好，“不动笔墨不读书”。最近我把自己关在书房里，啃完了 Go 官方关于 1.26 版本类型检查器（Type Checker）重构的技术深度报告。 不知道各位小伙伴在写代码时，有没有遇到过一种让人抓狂的报错：“initialization cycle” 或者 “invalid recursive type”？你本想写一个优雅的递归结构，结果 Go 编译器直接给你甩了个冷脸。 今天，咱们就聊聊">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-04T00:12:25.000Z">
+<meta property="article:modified_time" content="2026-04-04T01:21:09.972Z">
+<meta property="article:author" content="老黎">
+<meta property="article:tag" content="Go">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="老黎说" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">老黎说</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">不动笔墨不读书。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ljun51.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-type-construction-and-cycle-detection" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/04/04/type-construction-and-cycle-detection/" class="article-date">
+  <time class="dt-published" datetime="2026-04-04T00:12:25.000Z" itemprop="datePublished">2026-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>俗话说得好，“不动笔墨不读书”。最近我把自己关在书房里，啃完了 Go 官方关于 1.26 版本类型检查器（Type Checker）重构的技术深度报告。</p>
+<p>不知道各位小伙伴在写代码时，有没有遇到过一种让人抓狂的报错：<strong>“initialization cycle”</strong> 或者 <strong>“invalid recursive type”</strong>？你本想写一个优雅的递归结构，结果 Go 编译器直接给你甩了个冷脸。</p>
+<p>今天，咱们就聊聊这个话题。别被标题里的“类型构建”和“循环检测”吓跑，牛古今天要把这块硬骨头，拆解成一个大家都能听懂的故事。</p>
+<hr>
+<h3 id="导读语"><a href="#导读语" class="headerlink" title="导读语"></a>导读语</h3><p>写过 Go 的人都知道，Go 以“严谨、稳健”著称，而这背后的头号功臣就是它的<strong>类型检查器</strong>。但在处理某些极端的递归类型时，这个“质检员”也会陷入死循环。Go 1.26 进行了一次深度的底层重构，彻底解决了那些让编译器“脑死机”的边缘案例。本文将带你潜入 Go 编译器的内部，看它如何用一套精妙的“红绿灯”机制，化解类型世界的“无限套娃”。</p>
+<hr>
+<h3 id="一、-缘起：当严谨的“质检员”遇到“套娃”"><a href="#一、-缘起：当严谨的“质检员”遇到“套娃”" class="headerlink" title="一、 缘起：当严谨的“质检员”遇到“套娃”"></a>一、 缘起：当严谨的“质检员”遇到“套娃”</h3><p>咱们先达成一个共识：<strong>Go 编译器是个极其死板且强迫症的质检员。</strong></p>
+<p>每当你写完代码点击运行，编译器做的第一件事就是把你的代码拆解成一棵“树”（抽象语法树，AST），然后派“类型检查器”去挨个检查。</p>
+<p>它要确保：</p>
+<ol>
+<li>你定义的 Map，Key 必须是可以比较的。</li>
+<li>你不能把一个 <code>string</code> 加到一个 <code>int</code> 上。</li>
+</ol>
+<p>但在处理某些类型定义时，这个质检员会遇到哲学问题。比如：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Node <span class="keyword">struct</span> &#123;</span><br><span class="line">    next *Node</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这叫<strong>递归类型（Recursive types）</strong>。<code>Node</code> 里面引用了 <code>Node</code>。如果你是质检员，你得先确认 <code>Node</code> 是完整的，才能给它盖章。但 <code>Node</code> 里面又含有一个 <code>Node</code> 指针，为了确认这个指针，你又要回头看 <code>Node</code>……</p>
+<p><strong>这就是技术圈经典的“先有鸡还是先有蛋”问题。</strong> 在旧版本里，Go 团队为了处理这些情况，写了很多零散的、打补丁式的逻辑。结果就是：在遇到一些极其奇葩的写法时，编译器会直接 Panic（崩溃）掉。</p>
+<p>为了让编译器更稳健，Go 1.26 决定从底层重构类型构建的逻辑。</p>
+<hr>
+<h3 id="二、-拆解：类型是如何“盖房子”的？"><a href="#二、-拆解：类型是如何“盖房子”的？" class="headerlink" title="二、 拆解：类型是如何“盖房子”的？"></a>二、 拆解：类型是如何“盖房子”的？</h3><p>牛古在这里给大家打个比方：<strong>类型构建（Type Construction）的过程，就像是按照图纸盖房子。</strong></p>
+<p>当编译器看到 <code>type T []U</code> 时，它启动了一个<strong>深度优先</strong>的建造流程：</p>
+<ol>
+<li><strong>开工（黄色状态）</strong>：编译器开始盖 <code>T</code> 这个房子。它发现 <code>T</code> 是一层“切片（Slice）”皮，里面住着 <code>U</code>。</li>
+<li><strong>停工待料</strong>：此时 <code>T</code> 还没盖完，标记为<strong>黄色（构建中）</strong>。编译器赶紧跑去隔壁盖 <code>U</code> 那个房子。</li>
+<li><strong>完工（绿色状态）</strong>：等 <code>U</code> 盖好了，标记为<strong>绿色（已完成）</strong>。</li>
+<li><strong>最终交付</strong>：回头把 <code>U</code> 塞进 <code>T</code> 的切片里，<code>T</code> 也变成了<strong>绿色</strong>。</li>
+</ol>
+<h4 id="牛古点睛：什么是“完整性（Completeness）”？"><a href="#牛古点睛：什么是“完整性（Completeness）”？" class="headerlink" title="牛古点睛：什么是“完整性（Completeness）”？"></a>牛古点睛：什么是“完整性（Completeness）”？</h4><p>这里的“绿色状态”就是官方文档提到的 <strong>Completeness</strong>。一个类型只有变绿了，编译器才敢“解构”它——也就是拆开看看它到底占多少内存、有哪些字段。</p>
+<hr>
+<h3 id="三、-莫比乌斯环：递归类型的“闭环技巧”"><a href="#三、-莫比乌斯环：递归类型的“闭环技巧”" class="headerlink" title="三、 莫比乌斯环：递归类型的“闭环技巧”"></a>三、 莫比乌斯环：递归类型的“闭环技巧”</h3><p>如果 <code>type T []T</code> 怎么办？按照上面的逻辑，编译器会陷入死循环。</p>
+<p>但 Go 编译器很聪明，它用了一招“<strong>先占座，后买票</strong>”：</p>
+<ul>
+<li>当它发现 <code>T</code> 引用了还在构建中的自己时，它会先画一个<strong>虚线箭头</strong>指向 <code>T</code>。</li>
+<li>它假设 <code>T</code> 迟早会变绿。只要在所有建造任务结束前，这个环能对上，就算成功。</li>
+</ul>
+<p><strong>但是（划重点！）</strong>，有一种情况是“先占座”也解决不了的，那就是<strong>当类型的大小取决于它自己时。</strong></p>
+<hr>
+<h3 id="四、-实战：让编译器“脑死机”的代码"><a href="#四、-实战：让编译器“脑死机”的代码" class="headerlink" title="四、 实战：让编译器“脑死机”的代码"></a>四、 实战：让编译器“脑死机”的代码</h3><p>咱们看这个极端的反面教材：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个会让编译器陷入死循环的“死结”</span></span><br><span class="line"><span class="keyword">type</span> T [unsafe.Sizeof(T&#123;&#125;)]<span class="type">int</span> </span><br></pre></td></tr></table></figure>
+<p><strong>逻辑拆解：</strong></p>
+<ol>
+<li>我们要定义数组 <code>T</code>。</li>
+<li>数组的大小是多少？是 <code>unsafe.Sizeof(T&#123;&#125;)</code>。</li>
+<li>要算 <code>T&#123;&#125;</code> 的大小，必须先知道 <code>T</code> 里面长啥样。</li>
+<li>为了知道 <code>T</code> 长啥样，我们得先定好这个数组的大小。</li>
+</ol>
+<p><strong>死循环了！</strong> 这种代码在逻辑上就是不成立的。</p>
+<h4 id="Go-1-26-之前的尴尬："><a href="#Go-1-26-之前的尴尬：" class="headerlink" title="Go 1.26 之前的尴尬："></a>Go 1.26 之前的尴尬：</h4><p>旧版本的编译器像是一个没经验的工人，它会一直尝试去算 <code>T</code> 的大小，最后算得头晕眼花，直接“罢工”（Panic）。</p>
+<h4 id="Go-1-26-的降维打击："><a href="#Go-1-26-的降维打击：" class="headerlink" title="Go 1.26 的降维打击："></a>Go 1.26 的降维打击：</h4><p>Go 1.26 引入了一套系统的<strong>循环检测（Cycle Detection）</strong>。它把表达式分成了两类：</p>
+<ul>
+<li><strong>上游（Upstreams）</strong>：产生值的，比如类型转换、函数调用。</li>
+<li><strong>下游（Downstreams）</strong>：消耗值的，比如算大小、取索引。</li>
+</ul>
+<p><strong>新逻辑：</strong> 只要一个值是从“不完整（黄色）”的类型里产生的，编译器就会在上游立刻拦截！</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go 1.26 编译器内部的逻辑演示</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> 检查表达式<span class="params">(expr)</span></span> &#123;</span><br><span class="line">    T := 获取类型(expr)</span><br><span class="line">    <span class="keyword">if</span> !isComplete(T) &#123; <span class="comment">// 如果类型还没绿</span></span><br><span class="line">        reportCycleErr(T) <span class="comment">// 别算了，直接报“循环定义”错误</span></span><br><span class="line">        <span class="keyword">return</span> </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 后续处理</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="五、-升华：从编译器的变动中，我们能学到什么？"><a href="#五、-升华：从编译器的变动中，我们能学到什么？" class="headerlink" title="五、 升华：从编译器的变动中，我们能学到什么？"></a>五、 升华：从编译器的变动中，我们能学到什么？</h3><p>这次 Go 1.26 的重构，不仅仅是修了几个 Bug，它背后藏着极其深刻的架构设计思想：</p>
+<ol>
+<li><p><strong>状态机优于特例处理</strong>：<br>以前是碰到一个递归场景写一个 <code>if-else</code>。现在是统一给所有类型加“红绿灯状态（Completeness）”。<strong>系统的复杂性不应该用更多的代码去堆，而应该用更通用的模型去简化。</strong></p>
+</li>
+<li><p><strong>及早发现，及早阻断（Fail-Fast）</strong>：<br>新版本不再等到计算出错才报错，而是在“值”产生的源头就检查类型的完整性。这在分布式系统设计里叫“上游治理”，能极大地提高系统的稳定性。</p>
+</li>
+<li><p><strong>追求“确定性”</strong>：<br>类型系统越是简单、确定，编译器的性能和可靠性就越高。这其实也是 Go 语言的设计哲学——<strong>少即是多</strong>。</p>
+</li>
+</ol>
+<hr>
+<h3 id="避坑指南"><a href="#避坑指南" class="headerlink" title="避坑指南"></a>避坑指南</h3><p>小伙伴们，虽然编译器变强了，但牛古还是要提醒大家：</p>
+<ul>
+<li><strong>慎用 <code>unsafe.Sizeof</code> 处理自定义类型</strong>，尤其是在定义数组长度时。</li>
+<li><strong>递归结构尽量通过指针实现</strong>。指针的大小是固定的，它能帮编译器快速跳出“递归陷阱”。</li>
+</ul>
+<hr>
+<h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>看完这次 Go 编译器的底层进化，你是不是对“类型”这两个字有了全新的认识？</p>
+<p>以前我们总觉得编译器是个黑盒，报错了就改，改对了就跑。但深入其中你会发现，这其实是一场关于<strong>逻辑、顺序与状态</strong>的巅峰对弈。</p>
+<p><strong>你曾在代码里写出过哪些奇葩的递归结构？或者你对 Go 1.26 的这次变动有什么看法？</strong> 欢迎在评论区留言，咱们一起在文字里碰撞火花。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2026/04/04/type-construction-and-cycle-detection/" data-id="cmnjnbb6m0000rrg0e0ihe747" data-title="深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Go/" rel="tag">Go</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/03/21/aws/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">AWS 服务介绍</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Go/" rel="tag">Go</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/Go/" style="font-size: 10px;">Go</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/04/04/type-construction-and-cycle-detection/">深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？</a>
+          </li>
+        
+          <li>
+            <a href="/2024/03/21/aws/">AWS 服务介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/git-svn/">git-svn</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 老黎<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
