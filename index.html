@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   
   
-  <title>老黎说</title>
+  <title>黎言片语</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="ljun51（老黎）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="老黎说">
+<meta property="og:title" content="黎言片语">
 <meta property="og:url" content="https://ljun51.github.io/index.html">
-<meta property="og:site_name" content="老黎说">
+<meta property="og:site_name" content="黎言片语">
 <meta property="og:description" content="ljun51（老黎）的个人网站，分享IT技术、生活点滴。包括JAVA、GOLANG、JAVASCRIPT等前端、后端的技术，还有各种开发工具、开发平台的技术。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="老黎">
 <meta name="twitter:card" content="summary">
   
-    <link rel="alternate" href="/atom.xml" title="老黎说" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="黎言片语" type="application/atom+xml">
   
   
     <link rel="shortcut icon" href="/favicon.png">
@@ -41,7 +41,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">老黎说</a>
+        <a href="/" id="logo">黎言片语</a>
       </h1>
       
         <h2 id="subtitle-wrap">
@@ -74,6 +74,597 @@
 
       <div class="outer">
         <section id="main">
+  
+    <article id="post-oh-my-openagent" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/04/18/oh-my-openagent/" class="article-date">
+  <time class="dt-published" datetime="2026-04-18T14:12:25.000Z" itemprop="datePublished">2026-04-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/04/18/oh-my-openagent/">当 AI 开始&#34;搞事情&#34;：Oh My OpenAgent 是怎么让代码自己干活的？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="当-AI-变成”包工头”：Oh-My-OpenAgent-如何让代码自己搬砖"><a href="#当-AI-变成”包工头”：Oh-My-OpenAgent-如何让代码自己搬砖" class="headerlink" title="当 AI 变成”包工头”：Oh My OpenAgent 如何让代码自己搬砖"></a>当 AI 变成”包工头”：Oh My OpenAgent 如何让代码自己搬砖</h1><blockquote>
+<p><strong>写在前面</strong>：这篇文章有点长，但如果你曾被”AI 写代码一时爽，debug  火葬场”折磨过，那这篇你一定要看完。</p>
+</blockquote>
+<hr>
+<p>想象一下：你有一个 AI 助手，它不是一个人在那儿”憋代码”，而是可以同时召唤出一群小帮手，有的帮你查资料，有的帮你改 bug，还有的帮你写文档。听起来像科幻？<strong>Oh My OpenAgent</strong> 已经把它变成了现实。</p>
+<p>这是一款开源的 AI 编程助手框架，但它和普通的”Copilot 平替”不太一样。<strong>它的核心理念是”工头模式”——让你的 AI 不是在写代码，而是在”管理”一堆 AI 来帮你干活。</strong></p>
+<p>咱们今天不搞虚的，直接拆解这个框架怎么玩。</p>
+<hr>
+<h2 id="缘起：为什么我们需要”AI-工头”？"><a href="#缘起：为什么我们需要”AI-工头”？" class="headerlink" title="缘起：为什么我们需要”AI 工头”？"></a>缘起：为什么我们需要”AI 工头”？</h2><p>小伙伴们，你们有没有遇到过这种情况：</p>
+<ul>
+<li>让 AI 写个功能，它给你写出来了，一跑测试，<strong>全挂</strong></li>
+<li>让 AI 查一个 bug，它在那儿”思考”了十分钟，然后告诉你”我找不到”</li>
+<li>想让 AI 同时做两件事，结果它说”我一次只能干一件”</li>
+</ul>
+<p><strong>这不是 AI 笨，是它本质上就是个”打工仔”，你让它往东它不敢往西，你让它同时做三件事，它就开始犯傻。</strong></p>
+<p>传统的 AI 编程工具，本质上就是一个<strong>单线程的执行者</strong>。你下一条指令，它完成一件事。听起来没毛病？但现实中的开发工作从来不是线性的：</p>
+<ul>
+<li>你要查文档，又要改代码，还要跑测试</li>
+<li>你要让 AI 做架构决策，又要做代码审查，还要写单元测试</li>
+<li>你同时需要好几种”专业能力”，但一个 AI 模型不可能样样精通</li>
+</ul>
+<p><strong>问题的本质不是 AI 不够强，而是我们没有一套”管理 AI”的机制。</strong></p>
+<p>Oh My OpenAgent 就是来解决这个问题的。它的做法是：<strong>不让你直接使唤 AI，而是让 AI 去使唤 AI。</strong></p>
+<hr>
+<h2 id="拆解：这个”工头”到底是怎么运转的？"><a href="#拆解：这个”工头”到底是怎么运转的？" class="headerlink" title="拆解：这个”工头”到底是怎么运转的？"></a>拆解：这个”工头”到底是怎么运转的？</h2><h3 id="核心概念一：Agents（特工队）"><a href="#核心概念一：Agents（特工队）" class="headerlink" title="核心概念一：Agents（特工队）"></a>核心概念一：Agents（特工队）</h3><p>Oh My OpenAgent 内置了一套”特工队”，每个特工有不同的专长：</p>
+<ul>
+<li><strong>Sisyphus（西西弗斯）</strong>：主决策者，负责统筹全局</li>
+<li><strong>Oracle（先知）</strong>：架构和调试专家，专门解决硬核问题</li>
+<li><strong>Librarian（图书馆员）</strong>：查资料、找文档的一把好手</li>
+<li><strong>Explore（探索者）</strong>：在代码库里挖宝的</li>
+<li><strong>Prometheus &#x2F; Metis &#x2F; Momus</strong>：规划、预判、审查一条龙</li>
+</ul>
+<p>你可以把 <strong>Sisyphus</strong> 理解成<strong>包工头</strong>，它接了你的需求，然后分配给手下的特工去干。</p>
+<p>配置文件长这样：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;agents&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;oracle&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;openai/gpt-5.4&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;variant&quot;</span><span class="punctuation">:</span> <span class="string">&quot;high&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;explore&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;github-copilot/grok-code-fast-1&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>每个特工都可以指定用哪个模型、什么 variant（max&#x2F;high&#x2F;medium&#x2F;low）、甚至还可以单独配置 temperature 和 top_p。<strong>这就好比你给每个工人发了不同的工具，有人用铲子，有人用挖掘机。</strong></p>
+<h3 id="核心概念二：Categories（工种分类）"><a href="#核心概念二：Categories（工种分类）" class="headerlink" title="核心概念二：Categories（工种分类）"></a>核心概念二：Categories（工种分类）</h3><p>不同类型的活，需要不同的人来干。Categories 就是用来定义”工种”的：</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>默认模型</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>visual-engineering</td>
+<td>gemini-3.1-pro (high)</td>
+<td>前端、UI、界面设计</td>
+</tr>
+<tr>
+<td>ultrabrain</td>
+<td>gpt-5.3-codex (xhigh)</td>
+<td>硬核逻辑推理</td>
+</tr>
+<tr>
+<td>deep</td>
+<td>gpt-5.3-codex (medium)</td>
+<td>自主问题解决、深度研究</td>
+</tr>
+<tr>
+<td>artistry</td>
+<td>gemini-3.1-pro (high)</td>
+<td>创意任务</td>
+</tr>
+<tr>
+<td>quick</td>
+<td>claude-haiku-4-5</td>
+<td>简单快速的活</td>
+</tr>
+<tr>
+<td>writing</td>
+<td>gemini-3-flash</td>
+<td>写文档、写文章</td>
+</tr>
+</tbody></table>
+<p><strong>这就相当于工地上的分工：瓦工贴砖，木工做柜，电工布线。</strong> 你让一个瓦工去接电线，不是不行，是效率太低。</p>
+<h3 id="核心概念三：Skills（技能包）"><a href="#核心概念三：Skills（技能包）" class="headerlink" title="核心概念三：Skills（技能包）"></a>核心概念三：Skills（技能包）</h3><p>除了特工，还有<strong>技能包</strong>的概念。技能是更细粒度的能力封装：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;skills&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;my-custom-skill&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;A custom skill for specific tasks&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Always use this skill when...&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>内置的技能包括：</p>
+<ul>
+<li><strong>playwright</strong>：浏览器自动化测试</li>
+<li><strong>agent-browser</strong>：轻量级浏览器操作</li>
+<li><strong>git-master</strong>：Git 操作专家</li>
+<li><strong>comment-checker</strong>：代码注释检查</li>
+</ul>
+<p>你可以理解为：<strong>技能 &#x3D; 专业工具箱</strong>。有些特工天生就会用，有些需要你给它配上。</p>
+<h3 id="核心概念四：Background-Tasks（后台搬运）"><a href="#核心概念四：Background-Tasks（后台搬运）" class="headerlink" title="核心概念四：Background Tasks（后台搬运）"></a>核心概念四：Background Tasks（后台搬运）</h3><p>Oh My OpenAgent 支持<strong>并行任务</strong>，这就很猛了。你可以让多个特工同时干活：</p>
+<ul>
+<li>Agent A 去查文档</li>
+<li>Agent B 去写代码</li>
+<li>Agent C 去跑测试</li>
+</ul>
+<p>谁先完活谁先报，不需要排队。配置后台任务的方式也很简单：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;backgroundTasks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;defaultConcurrency&quot;</span><span class="punctuation">:</span> <span class="number">5</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;staleTimeoutMs&quot;</span><span class="punctuation">:</span> <span class="number">60000</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>这就像工地上同时开了五个施工队，各干各的，互不耽误。</strong></p>
+<h3 id="核心概念五：Hooks（工地摄像头）"><a href="#核心概念五：Hooks（工地摄像头）" class="headerlink" title="核心概念五：Hooks（工地摄像头）"></a>核心概念五：Hooks（工地摄像头）</h3><p>还有一套<strong>生命周期钩子</strong>，可以在各个节点插入自定义逻辑。比如：</p>
+<ul>
+<li><code>agent-usage-reminder</code>：AI 用得差不多了，提醒你该”省着点用”了</li>
+<li><code>session-recovery</code>：session 断了？自动续上</li>
+<li><code>ralph-loop</code>：自动循环执行任务，直到搞定</li>
+<li><code>compaction-context-injector</code>：上下文满了？自动压缩</li>
+</ul>
+<p>这些钩子就像工地上的各种传感器和监控设备，<strong>保证整个系统不出乱子。</strong></p>
+<hr>
+<h2 id="实战：怎么配置一个”梦中情工”？"><a href="#实战：怎么配置一个”梦中情工”？" class="headerlink" title="实战：怎么配置一个”梦中情工”？"></a>实战：怎么配置一个”梦中情工”？</h2><p>说了这么多，咱们来点实际。假设你是一个个人开发者，想要一个<strong>省钱又高效的 AI 打工配置</strong>。</p>
+<h3 id="场景一：个人项目，小成本运行"><a href="#场景一：个人项目，小成本运行" class="headerlink" title="场景一：个人项目，小成本运行"></a>场景一：个人项目，小成本运行</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;quick&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;claude-haiku-4-5&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;visual-engineering&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gemini-3-flash&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;writing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gemini-3-flash&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;agents&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;explore&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;claude-haiku-4-5&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解读</strong>：主力用便宜的模型，只在需要深度思考时才动用贵的。<strong>这就像个小装修队，队长自己多干点，省点钱。</strong></p>
+<h3 id="场景二：团队开发，追求质量"><a href="#场景二：团队开发，追求质量" class="headerlink" title="场景二：团队开发，追求质量"></a>场景二：团队开发，追求质量</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ultrabrain&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gpt-5.4&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;variant&quot;</span><span class="punctuation">:</span> <span class="string">&quot;high&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deep&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gpt-5.4&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;agents&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;oracle&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gpt-5.4&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;variant&quot;</span><span class="punctuation">:</span> <span class="string">&quot;high&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;librarian&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;openai/gpt-4o&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;session-recovery&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;comment-checker&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;custom_prompt&quot;</span><span class="punctuation">:</span> <span class="string">&quot;检查这些注释：&#123;&#123;comments&#125;&#125;&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解读</strong>：核心决策用最强的模型，同时加上代码审查钩子。<strong>这就像外包了个完整施工队，有总监，有质检，有安全员。</strong></p>
+<h3 id="场景三：前端专属配置"><a href="#场景三：前端专属配置" class="headerlink" title="场景三：前端专属配置"></a>场景三：前端专属配置</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;visual-engineering&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;gemini-3.1-pro&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;variant&quot;</span><span class="punctuation">:</span> <span class="string">&quot;high&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;skills&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;playwright&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;webapp-testing&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;mcp&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;websearch&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;context7&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解读</strong>：专门调教了前端相关的模型和技能，还配了搜索和文档 MCP。<strong>这就像专门雇了个前端施工队，工具齐全。</strong></p>
+<hr>
+<h2 id="升华：这背后到底是什么产品哲学？"><a href="#升华：这背后到底是什么产品哲学？" class="headerlink" title="升华：这背后到底是什么产品哲学？"></a>升华：这背后到底是什么产品哲学？</h2><p>看完这套系统，我发现 Oh My OpenAgent 实际上在表达一个观点：</p>
+<blockquote>
+<p><strong>AI 编程的未来，不是一个更强的”程序员”，而是一个更高效的”工程队”。</strong></p>
+</blockquote>
+<p>这个思路其实很符合现实：</p>
+<ul>
+<li>现实中，没有哪个工地只靠一个全能工人</li>
+<li>现实中，效率来自分工和协作</li>
+<li>现实中，需要有人统筹、有人专业、有人查漏补缺</li>
+</ul>
+<p><strong>Oh My OpenAgent 做的事情，就是把软件工程的管理逻辑，映射到了 AI 协作上。</strong></p>
+<p>它不是让一个 AI 变得更聪明，而是让你可以同时用很多个 AI，每个 AI 做自己最擅长的事。</p>
+<h3 id="那我们能学到什么？"><a href="#那我们能学到什么？" class="headerlink" title="那我们能学到什么？"></a>那我们能学到什么？</h3><ol>
+<li>**不要迷信”一个超级 AI”**：有时候十个普通的 AI 配合，胜过一个大模型</li>
+<li><strong>配置即架构</strong>：你的配置文件就是你的”组织架构”</li>
+<li><strong>钩子即流程</strong>：通过钩子可以建立很多自动化流程，省去人工介入</li>
+</ol>
+<hr>
+<h2 id="避坑指南"><a href="#避坑指南" class="headerlink" title="避坑指南"></a>避坑指南</h2><ol>
+<li>**别把所有模型都设成”最高配”**：tokens 很贵的，且用且珍惜</li>
+<li><strong>技能不是越多越好</strong>：加载太多技能会增加系统复杂度，维护成本高</li>
+<li><strong>后台任务不是越多越好</strong>：并发太高可能会触发 API 限流，得不偿失</li>
+<li><strong>钩子用多了会翻车</strong>：每个钩子都有代价，建议先从简单的开始</li>
+</ol>
+<hr>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p><strong>你觉得 AI 编程的下一个阶段，会是”AI 协作”还是”AI 单挑”？或者，你有什么奇特的 AI 打工经历想分享？</strong> 欢迎在评论区留言，咱们一起聊聊。</p>
+<blockquote>
+<p>如果你还想看更多关于 AI 开发工具的深度解析，记得关注我，<strong>咱们下期再见</strong>。</p>
+</blockquote>
+<hr>
+<p><em>本文基于 Oh My OpenAgent 官方文档编写，官方配置参考：<a target="_blank" rel="noopener" href="https://ohmyopenagent.com/docs">https://ohmyopenagent.com/docs</a></em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2026/04/18/oh-my-openagent/" data-id="cmo4f9azq0001nug0h0gq5lgf" data-title="当 AI 开始&#34;搞事情&#34;：Oh My OpenAgent 是怎么让代码自己干活的？" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/opencode/" rel="tag">opencode</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-introducing-opensearch-3-6" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/04/09/introducing-opensearch-3-6/" class="article-date">
+  <time class="dt-published" datetime="2026-04-09T12:50:25.000Z" itemprop="datePublished">2026-04-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/04/09/introducing-opensearch-3-6/">从零到一：OpenSearch 3.6 如何让你 10 分钟搭建企业级搜索与监控系统</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="导读语"><a href="#导读语" class="headerlink" title="导读语"></a>导读语</h1><p><strong>想象一下：</strong><br>你是一名后端开发者，老板突然要求你“明天上线一个智能搜索系统，还要支持实时 APM 监控”。以往，这意味着数周的架构设计、模型调优、基础设施搭建……但现在，<strong>OpenSearch 3.6</strong> 用 AI 智能体将这一切压缩到<strong>分钟级</strong>。它不仅能自动生成搜索应用、一键部署可观测性栈，还能通过自然语言对话优化搜索相关性，甚至追踪 AI Agent 的每一次 LLM 调用。这不是未来，而是<strong>今天就能用上的开源利器</strong>。</p>
+<p>本文将拆解 OpenSearch 3.6 的<strong>核心创新</strong>，用<strong>生活化类比</strong>解释其背后的技术逻辑，并手把手教你<strong>如何快速上手</strong>。无论你是搜索新手还是资深架构师，都能从中获得实用干货。</p>
+<hr>
+<h2 id="一、痛点：为什么-OpenSearch-3-6-是“及时雨”？"><a href="#一、痛点：为什么-OpenSearch-3-6-是“及时雨”？" class="headerlink" title="一、痛点：为什么 OpenSearch 3.6 是“及时雨”？"></a>一、痛点：为什么 OpenSearch 3.6 是“及时雨”？</h2><h3 id="1-搜索应用开发的“九九八十一难”"><a href="#1-搜索应用开发的“九九八十一难”" class="headerlink" title="1. 搜索应用开发的“九九八十一难”"></a>1. 搜索应用开发的“九九八十一难”</h3><p>传统搜索应用开发流程，犹如<strong>手工打造一辆汽车</strong>：</p>
+<ul>
+<li><strong>选发动机</strong>：选择合适的检索策略（BM25、向量搜索、混合检索？）</li>
+<li><strong>设计车身</strong>：配置基础设施（集群规模、分片策略、硬件资源）</li>
+<li><strong>调教油门</strong>：优化 ML 模型和管道（嵌入模型、重排序、语义理解）</li>
+<li><strong>装饰内饰</strong>：开发用户界面（前端集成、交互逻辑）</li>
+</ul>
+<p><strong>每一步都需专家级技能</strong>，且环环相扣——任何一步出错，都可能导致“车辆熄火”。OpenSearch 3.6 的<strong>智能体（Agent）工具链</strong>，就是为了让你<strong>从“手工匠”变成“总装厂主管”</strong>。</p>
+<h3 id="2-可观测性的“数据孤岛”"><a href="#2-可观测性的“数据孤岛”" class="headerlink" title="2. 可观测性的“数据孤岛”"></a>2. 可观测性的“数据孤岛”</h3><p>微服务架构下，日志、指标、追踪数据散落在各处，如同<strong>分布在不同房间的监控屏幕</strong>：</p>
+<ul>
+<li><strong>日志</strong>：Elasticsearch&#x2F;Kibana</li>
+<li><strong>指标</strong>：Prometheus&#x2F;Grafana</li>
+<li><strong>追踪</strong>：Jaeger&#x2F;Zipkin</li>
+<li><strong>APM</strong>：New Relic&#x2F;Datadog</li>
+</ul>
+<p><strong>切换成本高、关联分析难</strong>，OpenSearch 3.6 的<strong>一键可观测性栈</strong>，相当于<strong>把所有屏幕整合到一个控制台</strong>，还支持<strong>自然语言查询</strong>。</p>
+<hr>
+<h2 id="二、缘起：OpenSearch-3-6-的“使命”"><a href="#二、缘起：OpenSearch-3-6-的“使命”" class="headerlink" title="二、缘起：OpenSearch 3.6 的“使命”"></a>二、缘起：OpenSearch 3.6 的“使命”</h2><p>OpenSearch 3.6 的核心使命：<strong>让复杂系统的构建和运维变得“傻瓜化”</strong>。它通过<strong>AI 智能体</strong>和<strong>自动化工具链</strong>，解决两大核心矛盾：</p>
+<ol>
+<li><strong>专家稀缺 vs. 需求爆发</strong>：让非专家也能快速构建企业级搜索&#x2F;可观测性系统。</li>
+<li><strong>数据孤岛 vs. 全链路洞察</strong>：打通日志、指标、追踪、APM，实现<strong>一站式运维</strong>。</li>
+</ol>
+<hr>
+<h2 id="三、拆解：OpenSearch-3-6-的“四大金刚”"><a href="#三、拆解：OpenSearch-3-6-的“四大金刚”" class="headerlink" title="三、拆解：OpenSearch 3.6 的“四大金刚”"></a>三、拆解：OpenSearch 3.6 的“四大金刚”</h2><h3 id="1-智能体驱动的搜索应用开发：OpenSearch-Launchpad"><a href="#1-智能体驱动的搜索应用开发：OpenSearch-Launchpad" class="headerlink" title="1. 智能体驱动的搜索应用开发：OpenSearch Launchpad"></a>1. <strong>智能体驱动的搜索应用开发：OpenSearch Launchpad</strong></h3><h4 id="类比：如同“乐高积木指导师”"><a href="#类比：如同“乐高积木指导师”" class="headerlink" title="类比：如同“乐高积木指导师”"></a><strong>类比</strong>：如同“乐高积木指导师”</h4><ul>
+<li><strong>传统模式</strong>：你需要<strong>自己设计每一块积木</strong>（索引、模型、UI），还要确保它们能拼在一起。</li>
+<li><strong>Launchpad 模式</strong>：你只需告诉它“<strong>我要造一辆赛车</strong>”，它会：<ol>
+<li>分析你的“赛车”需求（文档样本、用户偏好）。</li>
+<li>自动选择<strong>底盘（检索策略）</strong>、<strong>发动机（嵌入模型）</strong>、<strong>方向盘（UI 模板）</strong>。</li>
+<li><strong>一键生成</strong>可运行的本地应用，并提供优化建议。</li>
+</ol>
+</li>
+</ul>
+<h4 id="核心能力"><a href="#核心能力" class="headerlink" title="核心能力"></a><strong>核心能力</strong></h4><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>解决的痛点</th>
+<th>实现原理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>智能体对话</strong></td>
+<td>无需了解 OpenSearch 细节</td>
+<td>通过自然语言收集需求，自动生成 DSL 配置</td>
+</tr>
+<tr>
+<td><strong>一键部署</strong></td>
+<td>避免基础设施配置错误</td>
+<td>预置 Docker Compose 模板，自动调优集群参数</td>
+</tr>
+<tr>
+<td><strong>UI 自动生成</strong></td>
+<td>前端开发成本高</td>
+<td>基于模板的可定制界面，支持拖拽调整</td>
+</tr>
+</tbody></table>
+<h4 id="实战示例"><a href="#实战示例" class="headerlink" title="实战示例"></a><strong>实战示例</strong></h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一键启动 Launchpad（假设已安装 OpenSearch 3.6）</span></span><br><span class="line">docker run -it opensearchproject/opensearch-launchpad:3.6</span><br></pre></td></tr></table></figure>
+
+<p><strong>对话示例</strong>：</p>
+<blockquote>
+<p><strong>你</strong>：“我要建一个电商产品搜索系统，支持图片和文本混合检索。”<br><strong>Launchpad</strong>：“已分析您的样本数据，推荐使用 <strong>CLIP 嵌入模型 + 向量+关键词混合检索</strong>。是否需要集成推荐算法？”<br><strong>你</strong>：“是的，加入协同过滤。”<br><strong>Launchpad</strong>：“已生成配置，正在部署本地环境…… 完成！访问 <a target="_blank" rel="noopener" href="http://localhost:5601/">http://localhost:5601</a> 查看 Demo。”</p>
+</blockquote>
+<hr>
+<h3 id="2-搜索相关性的“自动驾驶”：Relevance-Agent"><a href="#2-搜索相关性的“自动驾驶”：Relevance-Agent" class="headerlink" title="2. 搜索相关性的“自动驾驶”：Relevance Agent"></a>2. <strong>搜索相关性的“自动驾驶”：Relevance Agent</strong></h3><h4 id="类比：如同“搜索引擎的健身教练”"><a href="#类比：如同“搜索引擎的健身教练”" class="headerlink" title="类比：如同“搜索引擎的健身教练”"></a><strong>类比</strong>：如同“搜索引擎的健身教练”</h4><ul>
+<li><strong>传统模式</strong>：你需要<strong>手动调参</strong>（调整 boost 值、重写查询逻辑），犹如<strong>盲目举铁</strong>，效果难以量化。</li>
+<li><strong>Relevance Agent 模式</strong>：它会：<ol>
+<li><strong>分析用户行为</strong>（点击、停留时间、跳出率）。</li>
+<li><strong>生成优化假设</strong>（“将标题权重从 2.0 调整到 1.5 可能提升 12% 的点击率”）。</li>
+<li><strong>自动验证</strong>：通过离线 A&#x2F;B 测试，输出<strong>可量化的改进建议</strong>。</li>
+</ol>
+</li>
+</ul>
+<h4 id="架构解析"><a href="#架构解析" class="headerlink" title="架构解析"></a><strong>架构解析</strong></h4><p>Relevance Agent 由<strong>三大子智能体</strong>协同工作：</p>
+<ol>
+<li><strong>用户行为分析师</strong>：挖掘隐式反馈（如“用户总是滚动到页面底部才找到想要的结果”）。</li>
+<li><strong>假设生成器</strong>：基于行为数据，生成可操作的优化策略。</li>
+<li><strong>评估师</strong>：通过<strong>离线评估指标</strong>（如 NDCG、MRR）验证假设。</li>
+</ol>
+<h4 id="避坑指南"><a href="#避坑指南" class="headerlink" title="避坑指南"></a><strong>避坑指南</strong></h4><ul>
+<li><strong>冷启动问题</strong>：初始阶段缺乏用户行为数据时，可导入<strong>历史查询日志</strong>或<strong>人工标注数据</strong>。</li>
+<li><strong>过拟合风险</strong>：定期检查“优化建议”是否符合业务逻辑，避免“为了优化而优化”。</li>
+</ul>
+<hr>
+<h3 id="3-可观测性的“瑞士军刀”：OpenSearch-Observability-Stack"><a href="#3-可观测性的“瑞士军刀”：OpenSearch-Observability-Stack" class="headerlink" title="3. 可观测性的“瑞士军刀”：OpenSearch Observability Stack"></a>3. <strong>可观测性的“瑞士军刀”：OpenSearch Observability Stack</strong></h3><h4 id="类比：如同“医院的全科医生”"><a href="#类比：如同“医院的全科医生”" class="headerlink" title="类比：如同“医院的全科医生”"></a><strong>类比</strong>：如同“医院的全科医生”</h4><ul>
+<li><strong>传统模式</strong>：你需要<strong>分别就诊</strong>（日志科、指标科、追踪科），医生之间不互通。</li>
+<li><strong>Observability Stack 模式</strong>：<strong>一个诊室搞定所有问题</strong>，还支持：<ul>
+<li><strong>自动生成服务拓扑图</strong>（如同“全身 CT”）。</li>
+<li><strong>自然语言查询</strong>（“显示上周支付服务的错误率前 5 的 API”）。</li>
+<li><strong>AI Agent 追踪</strong>（记录每次 LLM 调用的 Token 消耗、延迟）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="核心组件"><a href="#核心组件" class="headerlink" title="核心组件"></a><strong>核心组件</strong></h4><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>功能</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>OpenTelemetry Collector</strong></td>
+<td>数据采集器</td>
+<td>“护士”（采集血压、体温）</td>
+</tr>
+<tr>
+<td><strong>Data Prepper</strong></td>
+<td>数据预处理</td>
+<td>“化验师”（清洗、标准化数据）</td>
+</tr>
+<tr>
+<td><strong>Prometheus</strong></td>
+<td>指标存储</td>
+<td>“心电图仪”</td>
+</tr>
+<tr>
+<td><strong>OpenSearch Dashboards</strong></td>
+<td>可视化</td>
+<td>“医生工作站”</td>
+</tr>
+</tbody></table>
+<h4 id="一键部署示例"><a href="#一键部署示例" class="headerlink" title="一键部署示例"></a><strong>一键部署示例</strong></h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载并启动可观测性栈</span></span><br><span class="line">curl -O https://raw.githubusercontent.com/opensearch-project/opensearch-observability/main/docker-compose.yml</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p><strong>效果</strong>：</p>
+<ul>
+<li>访问 <code>http://localhost:5601</code>，自动生成<strong>服务拓扑图</strong>。</li>
+<li>输入自然语言查询：“<code>show me the latency spike for order service yesterday</code>”。</li>
+</ul>
+<hr>
+<h3 id="4-向量搜索的“极速模式”：1-bit-Scalar-Quantization"><a href="#4-向量搜索的“极速模式”：1-bit-Scalar-Quantization" class="headerlink" title="4. 向量搜索的“极速模式”：1-bit Scalar Quantization"></a>4. <strong>向量搜索的“极速模式”：1-bit Scalar Quantization</strong></h3><h4 id="类比：如同“图片压缩算法”"><a href="#类比：如同“图片压缩算法”" class="headerlink" title="类比：如同“图片压缩算法”"></a><strong>类比</strong>：如同“图片压缩算法”</h4><ul>
+<li><strong>传统向量搜索</strong>：存储浮点数（FP32），犹如<strong>保存未压缩的 RAW 照片</strong>，占用空间大、检索慢。</li>
+<li><strong>1-bit SQ</strong>：将向量量化为<strong>二进制</strong>（0&#x2F;1），犹如<strong>黑白漫画</strong>，但通过智能算法<strong>保留关键特征</strong>。</li>
+</ul>
+<h4 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a><strong>性能对比</strong></h4><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>FP32</th>
+<th>1-bit SQ (Faiss)</th>
+<th>1-bit SQ (Lucene)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>存储压缩比</strong></td>
+<td>1x</td>
+<td>32x</td>
+<td>32x</td>
+</tr>
+<tr>
+<td><strong>召回率</strong></td>
+<td>基准</td>
+<td>+24%</td>
+<td>+15%</td>
+</tr>
+<tr>
+<td><strong>延迟</strong></td>
+<td>基准</td>
+<td>-40%</td>
+<td>-15%</td>
+</tr>
+</tbody></table>
+<h4 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a><strong>适用场景</strong></h4><ul>
+<li><strong>海量向量库</strong>（如 10 亿级嵌入向量）。</li>
+<li><strong>边缘设备</strong>（资源受限环境）。</li>
+</ul>
+<hr>
+<h2 id="四、实战：如何用-OpenSearch-3-6-解决真实问题？"><a href="#四、实战：如何用-OpenSearch-3-6-解决真实问题？" class="headerlink" title="四、实战：如何用 OpenSearch 3.6 解决真实问题？"></a>四、实战：如何用 OpenSearch 3.6 解决真实问题？</h2><h3 id="场景-1：电商平台的智能搜索优化"><a href="#场景-1：电商平台的智能搜索优化" class="headerlink" title="场景 1：电商平台的智能搜索优化"></a>场景 1：电商平台的智能搜索优化</h3><p><strong>痛点</strong>：</p>
+<ul>
+<li>用户搜索“夏季连衣裙”，但结果混杂了冬季款式。</li>
+<li>点击率低，转化率下降。</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<ol>
+<li><strong>启用 Relevance Agent</strong>：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 OpenSearch Dashboards 中启用</span></span><br><span class="line">POST /_plugins/_relevance_agent/enable</span><br></pre></td></tr></table></figure></li>
+<li><strong>导入历史查询日志</strong>：  <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;queries&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;夏季连衣裙&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;clicks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;id123&quot;</span><span class="punctuation">,</span> <span class="string">&quot;id456&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;冬季连衣裙&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;clicks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;id789&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>自动生成优化建议</strong>：</li>
+</ol>
+<ul>
+<li>将“季节”字段的 boost 值从 1.0 提升到 <strong>2.5</strong>。</li>
+<li>加入<strong>语义过滤器</strong>，排除冬季相关结果。</li>
+</ul>
+<p><strong>效果</strong>：点击率提升 **37%**，平均搜索延迟降低 <strong>200ms</strong>。</p>
+<hr>
+<h3 id="场景-2：微服务-APM-的故障定位"><a href="#场景-2：微服务-APM-的故障定位" class="headerlink" title="场景 2：微服务 APM 的故障定位"></a>场景 2：微服务 APM 的故障定位</h3><p><strong>痛点</strong>：</p>
+<ul>
+<li>支付服务偶发超时，但日志和指标分散，难以定位根因。</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<ol>
+<li><strong>部署 Observability Stack</strong>：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f observability-stack.yml up -d</span><br></pre></td></tr></table></figure></li>
+<li><strong>查询异常追踪</strong>：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 在 Dashboards 中输入</span><br><span class="line">show traces where service=&quot;payment&quot; and duration &gt; 2s</span><br></pre></td></tr></table></figure></li>
+<li><strong>自动关联日志</strong>：</li>
+</ol>
+<ul>
+<li>系统自动展示<strong>超时追踪</strong>对应的错误日志和依赖服务的 RED 指标。</li>
+</ul>
+<p><strong>效果</strong>：故障定位时间从 <strong>1 小时</strong>缩短到 <strong>5 分钟</strong>。</p>
+<hr>
+<h2 id="五、升华：OpenSearch-3-6-的架构哲学"><a href="#五、升华：OpenSearch-3-6-的架构哲学" class="headerlink" title="五、升华：OpenSearch 3.6 的架构哲学"></a>五、升华：OpenSearch 3.6 的架构哲学</h2><h3 id="1-“智能体即服务”"><a href="#1-“智能体即服务”" class="headerlink" title="1. “智能体即服务”"></a>1. <strong>“智能体即服务”</strong></h3><p>OpenSearch 3.6 的智能体设计遵循<strong>“微服务化”</strong>原则：</p>
+<ul>
+<li><strong>单一职责</strong>：每个智能体（如 Relevance Agent、Launchpad）只做一件事，但做到极致。</li>
+<li><strong>协同编排</strong>：通过 <strong>Agent Server</strong> 统一调度，避免“智能体孤岛”。</li>
+<li><strong>人在回路</strong>：始终保留<strong>人工干预</strong>入口，防止“黑盒决策”。</li>
+</ul>
+<h3 id="2-“存储与计算的平衡术”"><a href="#2-“存储与计算的平衡术”" class="headerlink" title="2. “存储与计算的平衡术”"></a>2. <strong>“存储与计算的平衡术”</strong></h3><ul>
+<li><strong>1-bit SQ</strong>：在<strong>存储压缩</strong>和<strong>检索性能</strong>间找到<strong>帕累托最优</strong>。</li>
+<li><strong>Prefetch</strong>：通过<strong>预加载</strong>减少 CPU 空转，犹如“提前热车”。</li>
+</ul>
+<h3 id="3-“可观测性的民主化”"><a href="#3-“可观测性的民主化”" class="headerlink" title="3. “可观测性的民主化”"></a>3. <strong>“可观测性的民主化”</strong></h3><ul>
+<li><strong>自然语言查询</strong>：让运维工程师<strong>不用写 PPL&#x2F;SQL</strong>也能分析数据。</li>
+<li><strong>一键部署</strong>：降低<strong>可观测性的准入门槛</strong>，让中小团队也能享受企业级能力。</li>
+</ul>
+<hr>
+<h1 id="结语：为什么-OpenSearch-3-6-是你的“下一个依赖”？"><a href="#结语：为什么-OpenSearch-3-6-是你的“下一个依赖”？" class="headerlink" title="结语：为什么 OpenSearch 3.6 是你的“下一个依赖”？"></a>结语：为什么 OpenSearch 3.6 是你的“下一个依赖”？</h1><p>OpenSearch 3.6 不是简单的版本迭代，而是<strong>开源搜索与可观测性领域的“iPhone 时刻”</strong>：</p>
+<ul>
+<li><strong>对开发者</strong>：从“手工艺人”解放为“系统集成者”。</li>
+<li><strong>对运维团队</strong>：从“数据考古学家”变身“实时故障猎手”。</li>
+<li><strong>对企业</strong>：将<strong>搜索和可观测性</strong>从“成本中心”转变为“竞争优势”。</li>
+</ul>
+<p><strong>现在就是最佳试水时机</strong>：</p>
+<ol>
+<li><strong>下载体验</strong>：<a target="_blank" rel="noopener" href="https://opensearch.org/downloads/">OpenSearch 3.6 官方下载</a></li>
+<li><strong>快速上手</strong>：<a target="_blank" rel="noopener" href="https://playground.opensearch.org/">OpenSearch Playground</a>（无需安装）</li>
+<li><strong>加入社区</strong>：<a target="_blank" rel="noopener" href="https://github.com/opensearch-project">GitHub</a> &#x2F; <a target="_blank" rel="noopener" href="https://opensearch.org/slack/">Slack</a></li>
+</ol>
+<hr>
+<p><strong>留言互动</strong>：</p>
+<ul>
+<li>你最期待 OpenSearch 3.6 的哪项功能？为什么？</li>
+<li>在你的项目中，搜索或可观测性的最大痛点是什么？</li>
+<li>如果让你用一个比喻形容 OpenSearch 3.6，你会选什么？</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2026/04/09/introducing-opensearch-3-6/" data-id="cmo4f9azq0003nug0be1p8knt" data-title="从零到一：OpenSearch 3.6 如何让你 10 分钟搭建企业级搜索与监控系统" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenSearch-ElasticSearch/" rel="tag">OpenSearch ElasticSearch</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-inliner" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/04/05/inliner/" class="article-date">
+  <time class="dt-published" datetime="2026-04-05T00:12:25.000Z" itemprop="datePublished">2026-04-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/04/05/inliner/">深度拆解 Go 编译器内联优化：从 PGO 到智能预算，1.23 时代的性能密码</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>不知道大家平时在做性能调优时，有没有这种感觉：明明逻辑已经优化到头了，该写的并发也写了，该省的内存也省了，可程序的性能提升就是撞到了天花板。你甚至怀疑，是不是 Go 编译器在背后偷偷“磨洋工”？</p>
+<p>其实，这就是今天咱们要聊的主角——<strong>编译器内联（Inlining）</strong>。它是编译器领域里最重要、也是最像“点石成金”的魔法。今天老黎不讲大道理，咱们拆解一下 Go 团队是怎么把这个“老旧的魔法棒”重新翻新的。</p>
+<hr>
+<h3 id="导读语"><a href="#导读语" class="headerlink" title="导读语"></a>导读语</h3><p>如果说代码是你写的“乐谱”，那么编译器内联器就是那个“编曲师”。它决定了哪些函数调用应该被拆开、揉碎并直接嵌入到调用者中，从而消灭那该死的栈开销。Go 官方最近对内联器进行了一次“史诗级大修”，从原本死板的“看人下菜碟”变成了现在的“大数据精准扶持”。本文将带你潜入 Go 编译器的最底层，看老伙计编译器如何通过 PGO（配置文件引导优化）和全新的内联策略，为你的程序注入第二春。</p>
+<hr>
+<h3 id="一、-缘起：为什么“跑腿”成了性能杀手？"><a href="#一、-缘起：为什么“跑腿”成了性能杀手？" class="headerlink" title="一、 缘起：为什么“跑腿”成了性能杀手？"></a>一、 缘起：为什么“跑腿”成了性能杀手？</h3><p>咱们先来聊聊背景。在 Go 语言里，函数是咱们组织逻辑的基本单位。但是，<strong>每一个函数调用，都是有代价的。</strong></p>
+<p>当你调用一个函数时，CPU 需要做一系列动作：</p>
+<ol>
+<li>把当前的参数存好。</li>
+<li>记住现在执行到哪了（保存现场）。</li>
+<li>跳到函数代码所在的地方。</li>
+<li>函数执行完后再跳回来（恢复现场）。</li>
+</ol>
+<p><strong>老黎点睛</strong>：这就好比你是个主厨（调用者），想加点盐，如果你每次都要给远在仓库的采购员（被调用函数）打个电话：“喂，帮我送 5 克盐过来”，采购员跑一趟的成本，可能比你炒菜本身还高。</p>
+<p>所谓<strong>内联（Inlining）</strong>，就是编译器把那 5 克盐直接放在你的厨台边上。它不再调用函数，而是直接把函数的代码“复制粘贴”到你的逻辑里。这不仅仅省了跑腿的开销，更重要的是，它让编译器能看到更多代码，从而进行更变态的优化（比如逃逸分析）。</p>
+<hr>
+<h3 id="二、-知识降维：内联器的“装修公司”逻辑"><a href="#二、-知识降维：内联器的“装修公司”逻辑" class="headerlink" title="二、 知识降维：内联器的“装修公司”逻辑"></a>二、 知识降维：内联器的“装修公司”逻辑</h3><p>为了让大家理解 Go 内联器的进化，咱们把编译器比作一家<strong>装修公司</strong>。</p>
+<h4 id="1-曾经的“死工资”时代（静态内联）"><a href="#1-曾经的“死工资”时代（静态内联）" class="headerlink" title="1. 曾经的“死工资”时代（静态内联）"></a>1. 曾经的“死工资”时代（静态内联）</h4><p>在老版本里，Go 的内联器是个死板的工头。他手里拿着一个记分簿：</p>
+<ul>
+<li><strong>Token 预算制</strong>：他数一数函数里的代码行数（Token）。如果这个函数太长（比如超过 80 个 Token），他就摆摆手：“太复杂了，我不干，老老实实调用去吧。”</li>
+<li><strong>黑名单制</strong>：如果函数里有循环（<code>for</code>）、有复杂的 <code>defer</code>，他干脆直接罢工。</li>
+</ul>
+<p><strong>弊端</strong>：这导致了很多明明可以优化的代码，因为“超重”了一点点，就被无情抛弃。</p>
+<h4 id="2-现在的“大数据精准装修”时代（PGO-与智能内联）"><a href="#2-现在的“大数据精准装修”时代（PGO-与智能内联）" class="headerlink" title="2. 现在的“大数据精准装修”时代（PGO 与智能内联）"></a>2. 现在的“大数据精准装修”时代（PGO 与智能内联）</h4><p>Go 1.22+ 引入了 <strong>PGO（Profile Guided Optimization，配置文件引导优化）</strong>。这下装修工头配备了大数据终端。</p>
+<ul>
+<li><strong>类比：</strong> 工头不再死扣代码行数，而是先看一段监控录像（生成的 CPU Profile 文件）。他发现，虽然某个函数有点长，但它在 1 分钟内被调用了 10 亿次！于是他拍板：“这个是核心路径，哪怕花重金，我也要把它内联进去！”</li>
+</ul>
+<hr>
+<h3 id="三、-拆解：Go-内联器的两把大手术刀"><a href="#三、-拆解：Go-内联器的两把大手术刀" class="headerlink" title="三、 拆解：Go 内联器的两把大手术刀"></a>三、 拆解：Go 内联器的两把大手术刀</h3><p>Go 官方博客提到，这次重构主要动了两处核心逻辑：</p>
+<h4 id="1-预算制的全面翻新（Call-site-Budget）"><a href="#1-预算制的全面翻新（Call-site-Budget）" class="headerlink" title="1. 预算制的全面翻新（Call-site Budget）"></a>1. 预算制的全面翻新（Call-site Budget）</h4><p>以前是看“函数长不长”，现在是看“这一处调用值不值”。</p>
+<ul>
+<li><strong>延迟构造</strong>：编译器现在会分析每个调用点（Call-site）的收益。如果内联后能让某些接口调用变成直接调用，或者能消除内存分配，内联器会给这个函数增加“奖金预算”。</li>
+</ul>
+<h4 id="2-解决“内联中毒”与“代码膨胀”"><a href="#2-解决“内联中毒”与“代码膨胀”" class="headerlink" title="2. 解决“内联中毒”与“代码膨胀”"></a>2. 解决“内联中毒”与“代码膨胀”</h4><p>如果你把所有函数都内联了，可执行文件会变得巨大无比，CPU 缓存（Instruction Cache）反而会因为塞不下而性能下降。</p>
+<table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left">改版前（Legacy Inliner）</th>
+<th align="left">改版后（New PGO-driven Inliner）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>决策依据</strong></td>
+<td align="left">静态 Token 数量（死标准）</td>
+<td align="left">PGO 实际运行数据（活数据）</td>
+</tr>
+<tr>
+<td align="left"><strong>间接调用</strong></td>
+<td align="left">基本无能为力</td>
+<td align="left">能识别并优化热点的接口&#x2F;函数指针</td>
+</tr>
+<tr>
+<td align="left"><strong>策略偏好</strong></td>
+<td align="left">极度保守，宁错杀不内联</td>
+<td align="left">激进且精准，聚焦高频热点</td>
+</tr>
+<tr>
+<td align="left"><strong>性能收益</strong></td>
+<td align="left">0 - 2%</td>
+<td align="left"><strong>典型提升 2% - 14%</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="四、-实战：避坑指南"><a href="#四、-实战：避坑指南" class="headerlink" title="四、 实战：避坑指南"></a>四、 实战：避坑指南</h3><p>为了让大家更有感触，咱们看这段简单的代码示例。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//go:noinline  // 注：如果你想观察性能差异，可以用这个指令强制不内联</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Add</span><span class="params">(a, b <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HotPath</span><span class="params">(n <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">    sum := <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">        <span class="comment">// 在 1.23 版本中，配合 PGO，哪怕这个循环很复杂，</span></span><br><span class="line">        <span class="comment">// 编译器也可能决定把 Add 的逻辑直接“揉进”来。</span></span><br><span class="line">        sum = Add(sum, i) </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>避坑指南</strong>：</p>
+<ol>
+<li><strong>不要手动内联</strong>：很多小伙伴喜欢为了性能，手动把小函数写成一整块。千万别！这会让你的代码难以维护。Go 的内联器现在已经很聪明了。</li>
+<li><strong>务必开启 PGO</strong>：现在的内联器只有在开启 PGO 的情况下才能发挥 100% 的功力。在生产环境采集一个 <code>default.pgo</code> 文件放进源码包，是目前性价比最高的优化手段。</li>
+</ol>
+<hr>
+<h3 id="五、-升华：内联变动背后的架构思想"><a href="#五、-升华：内联变动背后的架构思想" class="headerlink" title="五、 升华：内联变动背后的架构思想"></a>五、 升华：内联变动背后的架构思想</h3><p>读完这篇文章，感悟最深的一点是：<strong>系统的性能，往往不是设计出来的，而是演化出来的。</strong></p>
+<p>Go 团队这次对内联器的重构，体现了三个极其深刻的设计哲学：</p>
+<ol>
+<li><p><strong>从“静态推断”转向“动态反馈”</strong>：<br>以前我们试图在编译期通过数学模型预测运行期。但实际上，代码的“冷热”只有运行了才知道。PGO 的成功说明：<strong>与其追求完美的算法，不如追求真实的反馈。</strong></p>
+</li>
+<li><p><strong>控制复杂度的平衡</strong>：<br>内联是空间换时间。Go 团队没有盲目追求内联所有代码，而是在“代码大小”和“运行速度”之间精确地划了一条红线。这告诉我们，做架构设计时，<strong>最优解往往不是单点的极致，而是全局的均衡。</strong></p>
+</li>
+<li><p><strong>让编译器处理编译器的事</strong>：<br>开发者应该专注于代码的业务逻辑和可读性。底层优化的活儿，应该交给工具链。当编译器足够智能，咱们写出的“优雅代码”自然就会变成“高性能代码”。</p>
+</li>
+</ol>
+<hr>
+<h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>内联器就像一个默默无闻的幕后剪辑师，你几乎感觉不到他的存在，但他每一剪刀下去，都决定了电影（程序）的节奏快慢。</p>
+<p><strong>你们在做 Go 性能优化时，有没有因为手动内联而写出过“面条代码”？或者 PGO 给你带来了多大的惊喜？</strong> 欢迎在评论区留言，老黎在下面等着跟你们切磋。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ljun51.github.io/2026/04/05/inliner/" data-id="cmo4f9azo0000nug051pm0vvl" data-title="深度拆解 Go 编译器内联优化：从 PGO 到智能预算，1.23 时代的性能密码" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Go/" rel="tag">Go</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
   
     <article id="post-type-construction-and-cycle-detection" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
@@ -1455,212 +2046,6 @@ $ echo advise &gt; /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
 
   
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/08/30/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2020-08-30T05:37:21.000Z" itemprop="datePublished">2020-08-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/08/30/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2020/08/30/hello-world/" data-id="cmnjjo8l30005y6g09vndfihn" data-title="Hello World" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-frontend-interview-questions" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/05/16/frontend-interview-questions/" class="article-date">
-  <time class="dt-published" datetime="2020-05-16T01:55:56.000Z" itemprop="datePublished">2020-05-16</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/05/16/frontend-interview-questions/">前端web方向面试题</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="基础题"><a href="#基础题" class="headerlink" title="基础题"></a>基础题</h3><ul>
-<li><p>HTML5有什么新特性、新标签？CSS3（CSS4）有什么新特性？</p>
-</li>
-<li><p>CSS中的选择器有哪些？它们权重（优先级）的顺序是什么？</p>
-</li>
-<li><p>如何理解CSS中的盒子模型？Flex如何布局？</p>
-</li>
-<li><p>less、sass、stylus三者的区别？</p>
-</li>
-<li><p>ECMAScript2015~2019有什么新特性？</p>
-</li>
-<li><p>Javascript的基本数据类型有哪些？Set、Map的区别是什么？</p>
-</li>
-<li><p>为什么要组件化（模块化）开发？如何实现组件化（模块化）开发？</p>
-</li>
-<li><p>详细介绍Javascript、Typescript、React、Vue、微信、Flutter、IOS、Android开发？（选其中2项详细介绍）</p>
-</li>
-<li><p>HTTP常见的状态码、请求头有哪些？RESTful常用方法有哪些？</p>
-</li>
-<li><p>Git常用命令有哪些？webpack如何配置？</p>
-</li>
-<li><p>一个常见的前后端交互发生了什么？比如访问：<a target="_blank" rel="noopener" href="https://qq.com/">https://qq.com</a>，越详细越好。</p>
-</li>
-<li><p>CSS、HTML、Javascript如何性能优化？</p>
-</li>
-<li><p>React、Vue如何实现SSR（服务端渲染）？</p>
-</li>
-<li><p>是否了解nodejs、Java开发？熟悉哪些方面？</p>
-</li>
-<li><p>如何实现分页、菜单级联如何实现？后端同学如何提供数据？（详见视频）</p>
-</li>
-</ul>
-<h3 id="加分题"><a href="#加分题" class="headerlink" title="加分题"></a>加分题</h3><ul>
-<li>平时喜欢读哪些技术方面的书籍？前端方面、其他技术栈或是其他？</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2020/05/16/frontend-interview-questions/" data-id="cmnjjo8l10001y6g0gfga59fz" data-title="前端web方向面试题" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-java-interview-questions" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/05/16/java-interview-questions/" class="article-date">
-  <time class="dt-published" datetime="2020-05-16T00:37:21.000Z" itemprop="datePublished">2020-05-16</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/05/16/java-interview-questions/">Java方向面试题</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="基础题"><a href="#基础题" class="headerlink" title="基础题"></a>基础题</h3><ol>
-<li><p>Java 9及以上版本有什么新特性？</p>
-</li>
-<li><p>是否熟悉前端ES6（ECMAScript）、Typescript、React、Vue、微信、Flutter、IOS、Android开发？（选其中2项详细介绍）</p>
-</li>
-<li><p>面向对象的特征有哪些？抽象类和接口有什么区别？</p>
-</li>
-<li><p>Java如何进行异常处理？关键字：throws、throw、try、catch、finally分别如何使用？</p>
-</li>
-<li><p>Java有哪些方式实现网络通信？</p>
-</li>
-<li><p>主键、唯一索引、索引、联合索引的区别是什么？左连接、右连接、内连接、外连接的区别是什么？工作中是如何优化SQL查询的？</p>
-</li>
-<li><p>Mybtais中<code>#</code>和<code>$</code>有什么区别？Mybatis元素（标签）如何实现<code>1..1(一对一)</code>、<code>1..N(一对多)</code>映射查询？</p>
-</li>
-<li><p>Git常用命令有哪些？为了减少应用的大小，Maven如何排除多级依赖中不使用的Jar包？</p>
-</li>
-<li><p>如何理解Spring的依赖注入、控制反转？Spring Framework包含哪些内容？</p>
-</li>
-<li><p>Spring MVC注解@RequestBoby、@ResponseBody有什么区别？什么注解可以校验用户输入？如何接收用户文件上传？</p>
-</li>
-<li><p>HTTP常见的状态码、请求头有哪些？RESTful API方法有哪些？Spring MVC注解如何实现RESTful API？</p>
-</li>
-<li><p>Spring Cloud是通过哪些组件治理微服务的？工作中如何使用Spring Cloud？</p>
-</li>
-<li><p>描述一下Redis有哪些数据结构？工作中是如何使用的？</p>
-</li>
-<li><p>熟悉哪些设计模式？选择3个，介绍一下他们适合哪些场景？</p>
-</li>
-<li><p>Kafka(或其他消息中间件)可以做什么？工作中是如何使用的？</p>
-</li>
-<li><p>是否熟悉Elastic Stack？简单介绍一下它们的作用？</p>
-</li>
-</ol>
-<h3 id="加分题"><a href="#加分题" class="headerlink" title="加分题"></a>加分题</h3><ol start="17">
-<li><p>平时喜欢读哪些技术方面的书籍？Java方面、其他技术栈、区块链、人工智能或是其他？</p>
-</li>
-<li><p>是否熟悉Kubernetes、Istio？Kubernetes、Istio包含什么组件，组件之间是如何工作的？</p>
-</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ljun51.github.io/2020/05/16/java-interview-questions/" data-id="cmnjjo8l40008y6g00kmt83kv" data-title="Java方向面试题" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1679,7 +2064,7 @@ $ echo advise &gt; /sys/kernel/mm/transparent_hugepage/shmem_enabled
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Go/" rel="tag">Go</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Go/" rel="tag">Go</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenSearch-ElasticSearch/" rel="tag">OpenSearch ElasticSearch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git-svn/" rel="tag">git-svn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jvm/" rel="tag">jvm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/" rel="tag">k8s</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/opencode/" rel="tag">opencode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring-boot/" rel="tag">spring-boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zgc/" rel="tag">zgc</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" rel="tag">分布式存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8/" rel="tag">存储</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95/" rel="tag">面试</a></li></ul>
     </div>
   </div>
 
@@ -1689,7 +2074,7 @@ $ echo advise &gt; /sys/kernel/mm/transparent_hugepage/shmem_enabled
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/Go/" style="font-size: 10px;">Go</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
+      <a href="/tags/AWS/" style="font-size: 10px;">AWS</a> <a href="/tags/Go/" style="font-size: 15px;">Go</a> <a href="/tags/OpenSearch-ElasticSearch/" style="font-size: 10px;">OpenSearch ElasticSearch</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/git-svn/" style="font-size: 10px;">git-svn</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/k8s/" style="font-size: 10px;">k8s</a> <a href="/tags/kubernetes/" style="font-size: 10px;">kubernetes</a> <a href="/tags/opencode/" style="font-size: 10px;">opencode</a> <a href="/tags/spring-boot/" style="font-size: 10px;">spring-boot</a> <a href="/tags/zgc/" style="font-size: 10px;">zgc</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 10px;">分布式存储</a> <a href="/tags/%E5%AD%98%E5%82%A8/" style="font-size: 10px;">存储</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 15px;">面试</a>
     </div>
   </div>
 
@@ -1711,23 +2096,23 @@ $ echo advise &gt; /sys/kernel/mm/transparent_hugepage/shmem_enabled
       <ul>
         
           <li>
+            <a href="/2026/04/18/oh-my-openagent/">当 AI 开始&#34;搞事情&#34;：Oh My OpenAgent 是怎么让代码自己干活的？</a>
+          </li>
+        
+          <li>
+            <a href="/2026/04/09/introducing-opensearch-3-6/">从零到一：OpenSearch 3.6 如何让你 10 分钟搭建企业级搜索与监控系统</a>
+          </li>
+        
+          <li>
+            <a href="/2026/04/05/inliner/">深度拆解 Go 编译器内联优化：从 PGO 到智能预算，1.23 时代的性能密码</a>
+          </li>
+        
+          <li>
             <a href="/2026/04/04/type-construction-and-cycle-detection/">深度解析 Go 1.26 类型检查重构：如何优雅地处理递归与循环引用？</a>
           </li>
         
           <li>
             <a href="/2024/03/21/aws/">AWS 服务介绍</a>
-          </li>
-        
-          <li>
-            <a href="/2022/08/30/git-svn/">git-svn</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/30/vitess/">一文读懂Vitess</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/28/zgc/">一文读懂ZGC</a>
           </li>
         
       </ul>
